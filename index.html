@@ -66,18 +66,23 @@
         .stage-container {
             position: relative;
             width: 100%;
-            height: 215px; /* 舞台高度适配缩小20%企鹅 */
+            flex: 0 0 auto;
+            min-height: 0;
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            padding-bottom: 0.5cm; /* 企鹅底部离卡片上方0.5cm */
+            padding-bottom: 2vh;
+            height: 36vh;
+            max-height: 215px;
         }
 
         .light-beam {
             position: absolute;
-            bottom: 0.5cm;
-            width: 160px;
-            height: 160px;
+            bottom: 2vh;
+            width: 40vw;
+            max-width: 160px;
+            height: 40vw;
+            max-height: 160px;
             background: radial-gradient(ellipse at 50% 100%, rgba(0, 229, 255, 0.18) 0%, rgba(0, 102, 255, 0.06) 40%, transparent 70%);
             border-radius: 50% / 60% 60% 20% 20%;
             filter: blur(8px);
@@ -85,8 +90,9 @@
         }
         .light-glow-core {
             position: absolute;
-            bottom: calc(0.5cm + 2px);
-            width: 96px;
+            bottom: calc(2vh + 2px);
+            width: 24vw;
+            max-width: 96px;
             height: 8px;
             background: radial-gradient(circle, rgba(0,229,255,1) 0%, rgba(0,102,255,0.4) 60%, transparent 100%);
             border-radius: 50%;
@@ -104,8 +110,10 @@
         /* 确保企鹅层级最高 */
         .stage-avatar {
             position: relative;
-            width: 198px;
-            height: 198px;
+            width: 50vw;
+            max-width: 198px;
+            height: 50vw;
+            max-height: 198px;
             object-fit: contain;
             z-index: 20; /* 高于一切 */
             animation: penguinFloat 4s ease-in-out infinite;
@@ -114,22 +122,17 @@
 
         /* 舞台与4模块的包裹容器 */
         .stage-and-portal-wrapper {
-            position: relative;
             flex: 1;
             display: flex;
             flex-direction: column;
             min-height: 0;
-            overflow-y: auto;
         }
 
-        /* 🌟 大卡片：绝对定位，图层位于4模块下方，与时间轴同宽 */
+        /* 🌟 大卡片：位于4模块下方，弹性跟随流式布局 */
         .status-overlap-card {
-            position: absolute;
-            top: calc(50% + 0.5cm);
-            left: 0;
-            right: 0;
-            bottom: 0.3cm; /* 卡片下端上移0.3cm */
-            z-index: 1; /* 低于模块(z-index默认auto≈0，但模块在dom中靠后，视觉上模块在卡片之上) */
+            order: 2;
+            flex: 1;
+            min-height: 0;
             background: linear-gradient(180deg, rgba(11, 20, 38, 0.85) 0%, rgba(0, 229, 255, 0.06) 100%);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -144,23 +147,26 @@
 
         /* ==================== 4大核心功能模块 ==================== */
         .portal-grid {
+            order: 1;
             position: relative;
-            z-index: 10; /* 在卡片图层之上 */
+            z-index: 10;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 0.4cm;
-            transform: translateY(-0.5cm);
+            gap: 8px;
+            padding: 0 2px;
+            flex-shrink: 0;
+            margin-top: 0.2cm;
+            margin-bottom: -28px;
         }
-        
+
         .portal-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 14px;
-            padding: 12px 10px;
+            padding: 10px 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             backdrop-filter: blur(10px);
@@ -232,7 +238,9 @@
         .bottom-dock-section {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
+            padding-bottom: 1vh;
         }
 
         /* 🚀 全新横向线性时间轴 */
@@ -240,20 +248,21 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 14px;
-            padding: 10px 12px 8px;
+            padding: 8px 10px 6px;
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
         }
 
         /* 大标题 */
         .timeline-header {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #ffffff;
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .timeline-header::before {
             content: '';
@@ -266,14 +275,14 @@
         /* 轨道容器 */
         .timeline-track-container {
             position: relative;
-            padding-top: 10px; /* 给图标留出顶出空间 */
-            margin-bottom: 4px;
+            padding-top: 6px;
+            margin-bottom: 2px;
         }
 
         /* 背景基础轴线 */
         .track-bg-line {
             position: absolute;
-            top: 21px; /* 贯穿图标中心 */
+            top: 17px;
             left: 10%;
             right: 10%;
             height: 2px;
@@ -284,7 +293,7 @@
         /* 蓝光进度线：当前展示停留在提前批到秋招批之间 */
         .track-progress-line {
             position: absolute;
-            top: 21px;
+            top: 17px;
             left: 10%;
             width: 35%; /* 进度高亮范围 */
             height: 2px;
@@ -312,8 +321,8 @@
 
         /* 极简圆点图标 */
         .t-icon {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             background: var(--bg-dark);
             border: 1.5px solid rgba(255,255,255,0.15);
@@ -321,7 +330,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 9px;
             transition: all 0.3s ease;
         }
 
@@ -335,7 +344,7 @@
 
         /* 节点时间 */
         .t-time {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-muted);
             font-weight: 600;
         }
@@ -345,7 +354,7 @@
 
         /* 阶段名称 */
         .t-title {
-            font-size: 11.5px;
+            font-size: 10px;
             color: #fff;
             font-weight: 500;
             margin-top: -2px;
@@ -353,32 +362,34 @@
 
         /* 口语化核心价值 */
         .t-desc {
-            font-size: 9px;
+            font-size: 8px;
             color: var(--text-muted);
             white-space: nowrap;
-            transform: scale(0.95);
+            transform: scale(0.9);
         }
 
         /* 底部淡色免责/提示声明 */
         .timeline-footer-note {
-            font-size: 9px;
+            font-size: 8px;
             color: rgba(97, 119, 150, 0.65);
             text-align: center;
-            margin-top: 6px;
+            margin-top: 4px;
             border-top: 1px dashed rgba(255,255,255,0.06);
-            padding-top: 6px;
+            padding-top: 4px;
         }
 
         /* 常驻高端对话框 */
         .chat-input-bar-container {
+            width: 100%;
             background: rgba(14, 26, 48, 0.85);
             border: 1px solid rgba(0, 229, 255, 0.25);
-            border-radius: 22px;
-            padding: 4px 6px 4px 16px;
+            border-radius: 20px;
+            padding: 3px 5px 3px 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
         }
         
         .chat-text-input {
@@ -387,14 +398,14 @@
             border: none;
             outline: none;
             color: #ffffff;
-            font-size: 13px;
-            height: 32px;
+            font-size: 12px;
+            height: 28px;
         }
         .chat-text-input::placeholder { color: #405570; }
 
         .audio-voice-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: rgba(0, 229, 255, 0.08);
             border: 1px solid rgba(0, 229, 255, 0.2);
@@ -404,6 +415,7 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 11px;
         }
         .audio-voice-btn:hover {
             background: var(--cyan-glow);
@@ -422,8 +434,8 @@
         }
 
         .chat-send-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: transparent;
             border: none;
@@ -432,6 +444,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-size: 11px;
         }
         .chat-send-btn:hover { color: var(--cyan-glow); }
 
@@ -443,15 +456,16 @@
             }
 
             .app-container {
-                max-width: 1000px;
+                max-width: 1200px;
                 flex-direction: row;
-                gap: 32px;
+                gap: 24px;
                 align-items: stretch;
             }
 
             /* 左侧：企鹅舞台区 */
             .pc-left-panel {
-                flex: 0 0 380px;
+                flex: 0 0 30%;
+                max-width: 340px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -493,7 +507,7 @@
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
+                gap: 14px;
                 min-width: 0;
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -535,7 +549,7 @@
             .pc-right-panel .portal-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 16px;
                 margin-top: 0;
             }
 
@@ -578,7 +592,12 @@
             }
 
             .pc-right-panel .chat-input-bar-container {
+                width: 100%;
                 padding: 6px 8px 6px 20px;
+                box-shadow: 
+                    0 4px 15px rgba(0, 0, 0, 0.4),
+                    inset 0 0 20px rgba(0, 229, 255, 0.06),
+                    0 0 12px rgba(0, 229, 255, 0.08);
             }
 
             .pc-right-panel .chat-text-input {
@@ -626,12 +645,17 @@
 
         /* 面板顶部导航栏 */
         .panel-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 16px 20px;
             flex-shrink: 0;
             border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+            background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 50%);
         }
 
         .panel-back-btn {
@@ -2182,6 +2206,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        .benefit-stat-card.featured .benefit-stat-number .unit {
+            -webkit-text-fill-color: #ff8c5a;
         }
         @media (min-width: 769px) {
             .benefits-dashboard {
