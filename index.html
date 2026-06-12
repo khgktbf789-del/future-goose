@@ -1,0 +1,4700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>未来鹅顾问</title>
+    <!-- PingFang SC 是系统自带字体，无需从 Google Fonts 加载 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #050a16;
+            --card-bg: rgba(11, 20, 38, 0.45);
+            --card-border: rgba(0, 229, 255, 0.12);
+            --text-main: #ffffff;
+            --text-muted: #617796;
+            --cyan-glow: #00e5ff;
+            --pink-glow: #ff65a3; 
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang SC', -apple-system, sans-serif;
+        }
+
+        /* 极致锁死视窗高度，严禁滑动 */
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 25%, rgba(0, 102, 255, 0.18) 0%, transparent 65%);
+            color: var(--text-main);
+            height: 100vh;
+            max-height: 100vh;
+            overflow: hidden;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部标题区 */
+        .header-section h1 {
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 70%, #b3f5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-section p {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* ==================== 核心舞台区 ==================== */
+        .stage-container {
+            position: relative;
+            width: 100%;
+            height: 215px; /* 舞台高度适配缩小20%企鹅 */
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 0.5cm; /* 企鹅底部离卡片上方0.5cm */
+        }
+
+        .light-beam {
+            position: absolute;
+            bottom: 0.5cm;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(ellipse at 50% 100%, rgba(0, 229, 255, 0.18) 0%, rgba(0, 102, 255, 0.06) 40%, transparent 70%);
+            border-radius: 50% / 60% 60% 20% 20%;
+            filter: blur(8px);
+            z-index: 1;
+        }
+        .light-glow-core {
+            position: absolute;
+            bottom: calc(0.5cm + 2px);
+            width: 96px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(0,229,255,1) 0%, rgba(0,102,255,0.4) 60%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(3px);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.7);
+            z-index: 2;
+        }
+
+        @keyframes penguinFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 确保企鹅层级最高 */
+        .stage-avatar {
+            position: relative;
+            width: 198px;
+            height: 198px;
+            object-fit: contain;
+            z-index: 20; /* 高于一切 */
+            animation: penguinFloat 4s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(0, 102, 255, 0.35));
+        }
+
+        /* 舞台与4模块的包裹容器 */
+        .stage-and-portal-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        /* 🌟 大卡片：绝对定位，图层位于4模块下方，与时间轴同宽 */
+        .status-overlap-card {
+            position: absolute;
+            top: calc(50% + 0.5cm);
+            left: 0;
+            right: 0;
+            bottom: 0.3cm; /* 卡片下端上移0.3cm */
+            z-index: 1; /* 低于模块(z-index默认auto≈0，但模块在dom中靠后，视觉上模块在卡片之上) */
+            background: linear-gradient(180deg, rgba(11, 20, 38, 0.85) 0%, rgba(0, 229, 255, 0.06) 100%);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 229, 255, 0.18);
+            border-top: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 18px;
+            padding: 40px 20px 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            pointer-events: none;
+        }
+
+        /* ==================== 4大核心功能模块 ==================== */
+        .portal-grid {
+            position: relative;
+            z-index: 10; /* 在卡片图层之上 */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 0.4cm;
+            transform: translateY(-0.5cm);
+        }
+        
+        .portal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 12px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .portal-card:hover {
+            border-color: var(--cyan-glow);
+            background: rgba(14, 26, 48, 0.75);
+            transform: translateY(-1px);
+        }
+
+        .portal-card.emotional-core {
+            border-color: rgba(255, 101, 163, 0.25);
+            background: linear-gradient(135deg, rgba(11, 20, 38, 0.6) 0%, rgba(255, 101, 163, 0.05) 100%);
+        }
+        .portal-card.emotional-core:hover {
+            border-color: var(--pink-glow);
+            box-shadow: 0 0 12px rgba(255, 101, 163, 0.2);
+        }
+
+        .icon-container {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cyan-glow);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        
+        .emotional-core .icon-container {
+            background: rgba(255, 101, 163, 0.08);
+            border-color: rgba(255, 101, 163, 0.3);
+            color: var(--pink-glow);
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 101, 163, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 101, 163, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 101, 163, 0); }
+        }
+
+        .card-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+        .portal-card h2 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+        .portal-card p.sub-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        /* ==================== 底部：全维横向时间轴与对话框 ==================== */
+        .bottom-dock-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 🚀 全新横向线性时间轴 */
+        .timeline-card-horizontal {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 10px 12px 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 大标题 */
+        .timeline-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .timeline-header::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--cyan-glow);
+            border-radius: 2px;
+        }
+
+        /* 轨道容器 */
+        .timeline-track-container {
+            position: relative;
+            padding-top: 10px; /* 给图标留出顶出空间 */
+            margin-bottom: 4px;
+        }
+
+        /* 背景基础轴线 */
+        .track-bg-line {
+            position: absolute;
+            top: 21px; /* 贯穿图标中心 */
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 1;
+        }
+
+        /* 蓝光进度线：当前展示停留在提前批到秋招批之间 */
+        .track-progress-line {
+            position: absolute;
+            top: 21px;
+            left: 10%;
+            width: 35%; /* 进度高亮范围 */
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyan-glow), transparent);
+            z-index: 1;
+            box-shadow: 0 0 6px var(--cyan-glow);
+        }
+
+        /* 节点网格布局 */
+        .timeline-nodes {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .t-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            text-align: center;
+            gap: 4px;
+        }
+
+        /* 极简圆点图标 */
+        .t-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            border: 1.5px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            transition: all 0.3s ease;
+        }
+
+        /* 高亮节点样式（当前所处阶段） */
+        .t-node.active .t-icon {
+            border-color: var(--cyan-glow);
+            color: var(--cyan-glow);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        /* 节点时间 */
+        .t-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .t-node.active .t-time {
+            color: var(--cyan-glow);
+        }
+
+        /* 阶段名称 */
+        .t-title {
+            font-size: 11.5px;
+            color: #fff;
+            font-weight: 500;
+            margin-top: -2px;
+        }
+
+        /* 口语化核心价值 */
+        .t-desc {
+            font-size: 9px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            transform: scale(0.95);
+        }
+
+        /* 底部淡色免责/提示声明 */
+        .timeline-footer-note {
+            font-size: 9px;
+            color: rgba(97, 119, 150, 0.65);
+            text-align: center;
+            margin-top: 6px;
+            border-top: 1px dashed rgba(255,255,255,0.06);
+            padding-top: 6px;
+        }
+
+        /* 常驻高端对话框 */
+        .chat-input-bar-container {
+            background: rgba(14, 26, 48, 0.85);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 22px;
+            padding: 4px 6px 4px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .chat-text-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 13px;
+            height: 32px;
+        }
+        .chat-text-input::placeholder { color: #405570; }
+
+        .audio-voice-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            color: var(--cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .audio-voice-btn:hover {
+            background: var(--cyan-glow);
+            color: #000000;
+        }
+
+        .audio-voice-btn.listening {
+            background: rgba(255, 50, 50, 0.2);
+            border-color: rgba(255, 50, 50, 0.5);
+            color: #ff4444;
+            animation: pulseVoice 1s ease-in-out infinite;
+        }
+        @keyframes pulseVoice {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 50, 50, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 50, 50, 0); }
+        }
+
+        .chat-send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #a2b4ce;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .chat-send-btn:hover { color: var(--cyan-glow); }
+
+        /* ==================== PC端响应式：左右分栏布局 ==================== */
+        @media (min-width: 769px) {
+            body {
+                padding: 24px 32px;
+                align-items: center;
+            }
+
+            .app-container {
+                max-width: 1000px;
+                flex-direction: row;
+                gap: 32px;
+                align-items: stretch;
+            }
+
+            /* 左侧：企鹅舞台区 */
+            .pc-left-panel {
+                flex: 0 0 380px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+            }
+
+            .pc-left-panel .stage-container {
+                height: 380px;
+                padding-bottom: 0;
+            }
+
+            .pc-left-panel .stage-avatar {
+                width: 320px;
+                height: 320px;
+            }
+
+            .pc-left-panel .light-beam {
+                width: 260px;
+                height: 260px;
+                bottom: 20px;
+            }
+
+            .pc-left-panel .light-glow-core {
+                width: 160px;
+                height: 12px;
+                bottom: 22px;
+            }
+
+            /* 移动端元素在PC端隐藏 */
+            .header-section,
+            .stage-and-portal-wrapper,
+            .bottom-dock-section {
+                display: none;
+            }
+
+            /* 右侧：内容区 */
+            .pc-right-panel {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                min-width: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding-right: 4px;
+                justify-content: center;
+                /* 自定义滚动条 */
+                scrollbar-width: thin;
+                scrollbar-color: rgba(0, 229, 255, 0.15) transparent;
+            }
+            .pc-right-panel::-webkit-scrollbar {
+                width: 4px;
+            }
+            .pc-right-panel::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .pc-right-panel::-webkit-scrollbar-thumb {
+                background: rgba(0, 229, 255, 0.15);
+                border-radius: 2px;
+            }
+            .pc-right-panel::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 229, 255, 0.3);
+            }
+
+            .pc-right-panel .pc-header-section h1 {
+                font-size: 28px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                background: linear-gradient(135deg, #ffffff 70%, #b3f5ff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .pc-right-panel .pc-header-section p {
+                font-size: 14px;
+                color: var(--text-muted);
+                margin-top: 6px;
+            }
+
+            .pc-right-panel .portal-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-top: 0;
+            }
+
+            .pc-right-panel .portal-card {
+                padding: 16px 14px;
+            }
+
+            .pc-right-panel .portal-card h2 {
+                font-size: 15px;
+            }
+
+            .pc-right-panel .portal-card p.sub-desc {
+                font-size: 12px;
+            }
+
+            .pc-right-panel .icon-container {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .pc-right-panel .timeline-card-horizontal {
+                padding: 14px 16px 10px;
+            }
+
+            .pc-right-panel .timeline-header {
+                font-size: 14px;
+            }
+
+            .pc-right-panel .t-time {
+                font-size: 12px;
+            }
+
+            .pc-right-panel .t-title {
+                font-size: 13px;
+            }
+
+            .pc-right-panel .t-desc {
+                font-size: 10px;
+            }
+
+            .pc-right-panel .chat-input-bar-container {
+                padding: 6px 8px 6px 20px;
+            }
+
+            .pc-right-panel .chat-text-input {
+                font-size: 15px;
+                height: 40px;
+            }
+
+            .pc-right-panel .audio-voice-btn,
+            .pc-right-panel .chat-send-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* PC端专用元素在移动端隐藏 */
+        .pc-left-panel,
+        .pc-right-panel {
+            display: none !important;
+        }
+
+        @media (min-width: 769px) {
+            .pc-left-panel,
+            .pc-right-panel {
+                display: flex !important;
+            }
+        }
+        /* ==================== 鹅厂生态树：全屏覆盖面板 ==================== */
+        .overlay-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 50%);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overlay-panel.active {
+            transform: translateY(0);
+        }
+
+        /* 面板顶部导航栏 */
+        .panel-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+        }
+
+        .panel-back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            color: var(--cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        .panel-back-btn:hover {
+            background: rgba(0, 229, 255, 0.15);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 70%, #b3f5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .panel-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .panel-title-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .panel-spacer {
+            width: 36px;
+        }
+
+        /* 面板内容区 */
+        .panel-content {
+            flex: 1;
+            padding: 16px 16px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 事业群卡片网格 */
+        .bg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .bg-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .bg-card:hover {
+            border-color: var(--cyan-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.1);
+        }
+        .bg-card:hover::before {
+            opacity: 1;
+        }
+
+        .bg-card-abbr {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--cyan-glow) 0%, #0088ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .bg-card-name {
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .bg-card-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .bg-card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .bg-tag {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            color: var(--cyan-glow);
+            white-space: nowrap;
+        }
+
+        /* 个别事业群色彩微调 */
+        .bg-card.wxg .bg-card-abbr {
+            background: linear-gradient(135deg, #07c160 0%, #00e676 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-card.wxg .bg-tag { color: #07c160; border-color: rgba(7, 193, 96, 0.2); background: rgba(7, 193, 96, 0.06); }
+        .bg-card.wxg:hover { border-color: #07c160; box-shadow: 0 4px 20px rgba(7, 193, 96, 0.1); }
+
+        .bg-card.ieg .bg-card-abbr {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-card.ieg .bg-tag { color: #ff6b35; border-color: rgba(255, 107, 53, 0.2); background: rgba(255, 107, 53, 0.06); }
+        .bg-card.ieg:hover { border-color: #ff6b35; box-shadow: 0 4px 20px rgba(255, 107, 53, 0.1); }
+
+        .bg-card.cdg .bg-card-abbr {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-card.cdg .bg-tag { color: #ffd700; border-color: rgba(255, 215, 0, 0.2); background: rgba(255, 215, 0, 0.06); }
+        .bg-card.cdg:hover { border-color: #ffd700; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1); }
+
+        /* ==================== 鹅厂好工具：App Store 风格产品卡片 ==================== */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .tool-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tool-card::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            opacity: 0.06;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .tool-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        }
+        .tool-card:hover::after {
+            opacity: 0.12;
+            transform: scale(1.3);
+        }
+        .tool-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .tool-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        .tool-card:hover .tool-card-icon {
+            transform: scale(1.08);
+        }
+        .tool-card-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            position: relative;
+            z-index: 1;
+            line-height: 1.3;
+        }
+        .tool-card-rank {
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.5;
+        }
+        .tool-card-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+        .tool-card-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        .tool-card-stat .stat-num {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .tool-card-stat .stat-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* 各产品独立配色 */
+        .tool-card.tool-miniprogram .tool-card-icon { background: rgba(7, 193, 96, 0.12); color: #07c160; }
+        .tool-card.tool-miniprogram::after { background: #07c160; }
+        .tool-card.tool-miniprogram:hover { border-color: rgba(7, 193, 96, 0.4); box-shadow: 0 6px 24px rgba(7, 193, 96, 0.1); }
+        .tool-card.tool-miniprogram .stat-num { color: #07c160; }
+
+        .tool-card.tool-meeting .tool-card-icon { background: rgba(0, 136, 255, 0.12); color: #0088ff; }
+        .tool-card.tool-meeting::after { background: #0088ff; }
+        .tool-card.tool-meeting:hover { border-color: rgba(0, 136, 255, 0.4); box-shadow: 0 6px 24px rgba(0, 136, 255, 0.1); }
+        .tool-card.tool-meeting .stat-num { color: #0088ff; }
+
+        .tool-card.tool-docs .tool-card-icon { background: rgba(64, 150, 255, 0.12); color: #4096ff; }
+        .tool-card.tool-docs::after { background: #4096ff; }
+        .tool-card.tool-docs:hover { border-color: rgba(64, 150, 255, 0.4); box-shadow: 0 6px 24px rgba(64, 150, 255, 0.1); }
+        .tool-card.tool-docs .stat-num { color: #4096ff; }
+
+        .tool-card.tool-ima .tool-card-icon { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+        .tool-card.tool-ima::after { background: #a855f7; }
+        .tool-card.tool-ima:hover { border-color: rgba(168, 85, 247, 0.4); box-shadow: 0 6px 24px rgba(168, 85, 247, 0.1); }
+        .tool-card.tool-ima .stat-num { color: #a855f7; }
+
+        .tool-card.tool-codebuddy .tool-card-icon { background: rgba(0, 229, 255, 0.12); color: var(--cyan-glow); }
+        .tool-card.tool-codebuddy::after { background: var(--cyan-glow); }
+        .tool-card.tool-codebuddy:hover { border-color: rgba(0, 229, 255, 0.4); box-shadow: 0 6px 24px rgba(0, 229, 255, 0.1); }
+        .tool-card.tool-codebuddy .stat-num { color: var(--cyan-glow); }
+
+        .tool-card.tool-ti .tool-card-icon { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+        .tool-card.tool-ti::after { background: #f59e0b; }
+        .tool-card.tool-ti:hover { border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 6px 24px rgba(245, 158, 11, 0.1); }
+        .tool-card.tool-ti .stat-num { color: #f59e0b; }
+
+        .tool-card.tool-hunyuan .tool-card-icon { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+        .tool-card.tool-hunyuan::after { background: #ef4444; }
+        .tool-card.tool-hunyuan:hover { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 6px 24px rgba(239, 68, 68, 0.1); }
+        .tool-card.tool-hunyuan .stat-num { color: #ef4444; }
+
+        .tool-card.tool-codesign .tool-card-icon { background: rgba(236, 72, 153, 0.12); color: #ec4899; }
+        .tool-card.tool-codesign::after { background: #ec4899; }
+        .tool-card.tool-codesign:hover { border-color: rgba(236, 72, 153, 0.4); box-shadow: 0 6px 24px rgba(236, 72, 153, 0.1); }
+        .tool-card.tool-codesign .stat-num { color: #ec4899; }
+
+        .tool-card.tool-weda .tool-card-icon { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+        .tool-card.tool-weda::after { background: #22c55e; }
+        .tool-card.tool-weda:hover { border-color: rgba(34, 197, 94, 0.4); box-shadow: 0 6px 24px rgba(34, 197, 94, 0.1); }
+        .tool-card.tool-weda .stat-num { color: #22c55e; }
+
+        @media (min-width: 769px) {
+            .tools-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 12px;
+            }
+            .tool-card {
+                padding: 18px 16px;
+            }
+            .tool-card-stat .stat-num {
+                font-size: 22px;
+            }
+        }
+
+        /* ==================== 确认弹窗 ==================== */
+        .confirm-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .confirm-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .confirm-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px 20px 20px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            transform: translateY(12px) scale(0.96);
+            transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .confirm-modal-overlay.active .confirm-modal {
+            transform: translateY(0) scale(1);
+        }
+        .confirm-modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--cyan-glow);
+            margin: 0 auto 14px;
+        }
+        .confirm-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+        .confirm-modal-url {
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .confirm-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .confirm-modal-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+        }
+        .confirm-modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+        .confirm-modal-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        .confirm-modal-btn.confirm {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(0, 136, 255, 0.15) 100%);
+            color: var(--cyan-glow);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+        }
+        .confirm-modal-btn.confirm:hover {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(0, 136, 255, 0.25) 100%);
+            box-shadow: 0 2px 12px rgba(0, 229, 255, 0.15);
+        }
+
+        /* ==================== 求职树洞面板 ==================== */
+        /* 入口确认弹窗 */
+        .treehole-intro-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .treehole-intro-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px 20px 20px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            animation: treeholeFadeIn 0.3s ease;
+        }
+        @keyframes treeholeFadeIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .treehole-intro-emoji {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .treehole-intro-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .treehole-intro-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            text-align: left;
+            margin-bottom: 18px;
+        }
+        .treehole-intro-text .highlight {
+            color: var(--pink-glow);
+            font-weight: 500;
+        }
+        .treehole-intro-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(135deg, rgba(255, 101, 163, 0.2) 0%, rgba(255, 101, 163, 0.1) 100%);
+            color: var(--pink-glow);
+            border: 1px solid rgba(255, 101, 163, 0.25);
+            transition: all 0.2s ease;
+        }
+        .treehole-intro-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 101, 163, 0.3) 0%, rgba(255, 101, 163, 0.15) 100%);
+            box-shadow: 0 2px 12px rgba(255, 101, 163, 0.2);
+        }
+
+        /* 树洞对话面板 */
+        .treehole-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 30%, rgba(255, 101, 163, 0.04) 0%, transparent 55%);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow: hidden;
+        }
+        .treehole-panel.active {
+            transform: translateY(0);
+        }
+
+        /* 树洞导航栏 */
+        .treehole-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .treehole-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .treehole-back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .treehole-back-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+        .treehole-nav-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .treehole-nav-subtitle {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+        .treehole-clear-btn {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .treehole-clear-btn:hover {
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.3);
+            background: rgba(255, 107, 107, 0.06);
+        }
+
+        /* 树洞免责声明 */
+        .treehole-disclaimer {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 6px 14px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+
+        /* 树洞对话区 */
+        .treehole-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .treehole-message {
+            display: flex;
+            gap: 8px;
+            max-width: 90%;
+            animation: treeholeMsgIn 0.3s ease;
+        }
+        @keyframes treeholeMsgIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .treehole-message.ai {
+            align-self: flex-start;
+        }
+        .treehole-message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .treehole-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+        .treehole-message.ai .treehole-avatar {
+            background: rgba(255, 101, 163, 0.1);
+            color: var(--pink-glow);
+        }
+        .treehole-message.user .treehole-avatar {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--cyan-glow);
+        }
+        .treehole-bubble {
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        .treehole-message.ai .treehole-bubble {
+            background: rgba(255, 101, 163, 0.06);
+            border: 1px solid rgba(255, 101, 163, 0.1);
+            color: #e0d6dc;
+            border-bottom-left-radius: 4px;
+        }
+        .treehole-message.user .treehole-bubble {
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            color: #d6e4e8;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* 树洞输入区 */
+        .treehole-input-area {
+            padding: 10px 14px 14px;
+            flex-shrink: 0;
+        }
+        .treehole-input-row {
+            display: flex;
+            gap: 8px;
+        }
+        .treehole-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+            resize: none;
+            min-height: 40px;
+            max-height: 100px;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+        .treehole-input:focus {
+            border-color: rgba(255, 101, 163, 0.3);
+        }
+        .treehole-input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .treehole-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, rgba(255, 101, 163, 0.2) 0%, rgba(255, 101, 163, 0.1) 100%);
+            color: var(--pink-glow);
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .treehole-send-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 101, 163, 0.35) 0%, rgba(255, 101, 163, 0.2) 100%);
+            box-shadow: 0 2px 12px rgba(255, 101, 163, 0.2);
+        }
+
+        /* 树洞快捷入口 */
+        .treehole-quick-actions {
+            display: flex;
+            gap: 6px;
+            padding: 0 14px 8px;
+            flex-shrink: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .treehole-quick-actions::-webkit-scrollbar { display: none; }
+        .treehole-quick-btn {
+            flex: 0 0 auto;
+            font-size: 10px;
+            padding: 6px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .treehole-quick-btn:hover {
+            background: rgba(255, 101, 163, 0.08);
+            border-color: rgba(255, 101, 163, 0.2);
+            color: var(--pink-glow);
+        }
+
+        @media (min-width: 769px) {
+            .treehole-panel {
+                max-width: 600px;
+                border-radius: 20px 20px 0 0;
+                left: 50%;
+                transform: translate(-50%, 100%);
+            }
+            .treehole-panel.active {
+                transform: translate(-50%, 0);
+            }
+            .treehole-messages {
+                padding: 20px 24px;
+            }
+            .treehole-input-area {
+                padding: 12px 24px 20px;
+            }
+            .treehole-quick-actions {
+                padding: 0 24px 8px;
+            }
+        }
+
+        /* 底部提示 */
+        .panel-footer-hint {
+            text-align: center;
+            font-size: 10px;
+            color: rgba(97, 119, 150, 0.5);
+            padding: 4px 0 8px;
+            flex-shrink: 0;
+        }
+
+        /* ==================== 企业文化：IP 互动徽章墙 ==================== */
+        .badge-wall {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: linear-gradient(180deg, #060d1f 0%, #0a1628 50%, #0d1b33 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            flex-shrink: 0;
+            cursor: default;
+        }
+        
+        /* 粒子流背景 */
+        .badge-wall-particles {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+        .badge-wall-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--cyan-glow);
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleDrift 4s infinite ease-in-out;
+        }
+        @keyframes particleDrift {
+            0% { opacity: 0; transform: translateY(0) translateX(0); }
+            20% { opacity: 0.6; }
+            50% { opacity: 0.3; transform: translateY(-40px) translateX(15px); }
+            80% { opacity: 0.1; }
+            100% { opacity: 0; transform: translateY(-80px) translateX(-10px); }
+        }
+        
+        /* 粒子连接线 */
+        .badge-wall-connections {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .badge-wall-connections svg {
+            width: 100%;
+            height: 100%;
+        }
+        .connection-line {
+            stroke: rgba(0, 229, 255, 0.08);
+            stroke-width: 1;
+            fill: none;
+            stroke-dasharray: 4 4;
+            animation: dashFlow 3s linear infinite;
+        }
+        @keyframes dashFlow {
+            to { stroke-dashoffset: -16; }
+        }
+        
+        /* 中央企鹅区域 */
+        .badge-wall-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-wall-core .core-ring {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .badge-wall-core .core-ring::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px dashed rgba(0, 229, 255, 0.08);
+            animation: ringSpin 20s linear infinite;
+        }
+        @keyframes ringSpin {
+            to { transform: rotate(360deg); }
+        }
+        .badge-wall-goose {
+            width: 66px;
+            height: 66px;
+            object-fit: contain;
+            z-index: 2;
+            filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.25));
+            transition: filter 0.4s ease;
+        }
+        .badge-wall-core .core-label {
+            font-size: 10px;
+            color: rgba(0, 229, 255, 0.5);
+            letter-spacing: 2px;
+            z-index: 2;
+        }
+        
+        /* 脉冲光环 - 根据激活的徽章变色 */
+        .badge-wall-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        /* 徽章 */
+        .value-badge {
+            position: absolute;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .value-badge:hover {
+            transform: scale(1.08);
+        }
+        
+        /* 四个徽章定位 */
+        .value-badge.pos-top { top: 28px; left: 50%; transform: translateX(-50%); }
+        .value-badge.pos-right { right: 28px; top: 50%; transform: translateY(-50%); }
+        .value-badge.pos-bottom { bottom: 28px; left: 50%; transform: translateX(-50%); }
+        .value-badge.pos-left { left: 28px; top: 50%; transform: translateY(-50%); }
+        
+        .value-badge.pos-top:hover { transform: translateX(-50%) scale(1.08); }
+        .value-badge.pos-right:hover { transform: translateY(-50%) scale(1.08); }
+        .value-badge.pos-bottom:hover { transform: translateX(-50%) scale(1.08); }
+        .value-badge.pos-left:hover { transform: translateY(-50%) scale(1.08); }
+        
+        /* 徽章外框 */
+        .badge-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(11, 20, 38, 0.75);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--cyan-glow);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.35s ease;
+            position: relative;
+        }
+        .badge-icon-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            border: 1px solid transparent;
+            transition: all 0.35s ease;
+        }
+        
+        /* 徽章 hover 发光 */
+        .value-badge:hover .badge-icon-wrapper {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 24px rgba(0, 229, 255, 0.35), 0 0 8px rgba(0, 229, 255, 0.2);
+            background: rgba(0, 229, 255, 0.08);
+        }
+        .value-badge:hover .badge-icon-wrapper::after {
+            border-color: rgba(0, 229, 255, 0.5);
+            box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+        }
+        
+        /* 徽章名称 */
+        .badge-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .value-badge:hover .badge-label {
+            color: var(--cyan-glow);
+        }
+        
+        /* 弹出短句 */
+        .badge-tooltip {
+            position: absolute;
+            z-index: 20;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(11, 20, 38, 0.95);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            font-size: 12px;
+            color: #b3e5ff;
+            line-height: 1.6;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 229, 255, 0.1);
+            text-align: center;
+        }
+        /* tooltip 小三角 */
+        .badge-tooltip::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 6px solid transparent;
+        }
+        
+        /* top 徽章的 tooltip */
+        .value-badge.pos-top .badge-tooltip {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+        }
+        .value-badge.pos-top .badge-tooltip::after {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-color: rgba(0, 229, 255, 0.3);
+        }
+        .value-badge.pos-top:hover .badge-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(12px);
+        }
+        
+        /* right 徽章的 tooltip */
+        .value-badge.pos-right .badge-tooltip {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%) translateX(-8px);
+        }
+        .value-badge.pos-right .badge-tooltip::after {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border-left-color: rgba(0, 229, 255, 0.3);
+        }
+        .value-badge.pos-right:hover .badge-tooltip {
+            opacity: 1;
+            transform: translateY(-50%) translateX(-12px);
+        }
+        
+        /* bottom 徽章的 tooltip */
+        .value-badge.pos-bottom .badge-tooltip {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+        }
+        .value-badge.pos-bottom .badge-tooltip::after {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-top-color: rgba(0, 229, 255, 0.3);
+        }
+        .value-badge.pos-bottom:hover .badge-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-12px);
+        }
+        
+        /* left 徽章的 tooltip */
+        .value-badge.pos-left .badge-tooltip {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%) translateX(8px);
+        }
+        .value-badge.pos-left .badge-tooltip::after {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border-right-color: rgba(0, 229, 255, 0.3);
+        }
+        .value-badge.pos-left:hover .badge-tooltip {
+            opacity: 1;
+            transform: translateY(-50%) translateX(12px);
+        }
+        
+        /* 企鹅光效脉冲 */
+        .badge-wall[data-active="integrity"] .badge-wall-goose {
+            filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.5)) drop-shadow(0 0 8px rgba(0, 229, 255, 0.3));
+        }
+        .badge-wall[data-active="integrity"] .badge-wall-pulse {
+            opacity: 1;
+            box-shadow: 
+                0 0 20px rgba(0, 229, 255, 0.4),
+                0 0 40px rgba(0, 229, 255, 0.15),
+                inset 0 0 20px rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            animation: pulseCyan 1.2s ease-out infinite;
+        }
+        @keyframes pulseCyan {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+        
+        .badge-wall[data-active="enterprise"] .badge-wall-goose {
+            filter: drop-shadow(0 0 24px rgba(255, 107, 53, 0.5)) drop-shadow(0 0 8px rgba(255, 107, 53, 0.3));
+        }
+        .badge-wall[data-active="enterprise"] .badge-wall-pulse {
+            opacity: 1;
+            box-shadow: 
+                0 0 20px rgba(255, 107, 53, 0.4),
+                0 0 40px rgba(255, 107, 53, 0.15),
+                inset 0 0 20px rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            animation: pulseOrange 1.2s ease-out infinite;
+        }
+        @keyframes pulseOrange {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+        
+        .badge-wall[data-active="collaboration"] .badge-wall-goose {
+            filter: drop-shadow(0 0 24px rgba(7, 193, 96, 0.5)) drop-shadow(0 0 8px rgba(7, 193, 96, 0.3));
+        }
+        .badge-wall[data-active="collaboration"] .badge-wall-pulse {
+            opacity: 1;
+            box-shadow: 
+                0 0 20px rgba(7, 193, 96, 0.4),
+                0 0 40px rgba(7, 193, 96, 0.15),
+                inset 0 0 20px rgba(7, 193, 96, 0.1);
+            border: 1px solid rgba(7, 193, 96, 0.3);
+            animation: pulseGreen 1.2s ease-out infinite;
+        }
+        @keyframes pulseGreen {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+        
+        .badge-wall[data-active="creativity"] .badge-wall-goose {
+            filter: drop-shadow(0 0 24px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
+        }
+        .badge-wall[data-active="creativity"] .badge-wall-pulse {
+            opacity: 1;
+            box-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.4),
+                0 0 40px rgba(255, 215, 0, 0.15),
+                inset 0 0 20px rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            animation: pulseGold 1.2s ease-out infinite;
+        }
+        @keyframes pulseGold {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+
+        /* PC 端徽章墙 */
+        @media (min-width: 769px) {
+            .badge-wall {
+                height: 400px;
+            }
+            .badge-wall-goose {
+                width: 80px;
+                height: 80px;
+            }
+            .badge-icon-wrapper {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                font-size: 26px;
+            }
+            .badge-label {
+                font-size: 13px;
+            }
+            .badge-tooltip {
+                font-size: 13px;
+                padding: 12px 16px;
+            }
+            .badge-wall-core .core-ring {
+                width: 130px;
+                height: 130px;
+            }
+            .badge-wall-pulse {
+                width: 110px;
+                height: 110px;
+            }
+        }
+
+        /* ==================== 文化与福利面板样式 ==================== */
+        .culture-banner {
+            position: relative;
+            width: 100%;
+            height: 90px;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #2a1a3a 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-bottom: 4px;
+        }
+        .culture-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 229, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 60%, rgba(255, 101, 163, 0.10) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(0, 102, 255, 0.08) 0%, transparent 50%);
+        }
+        .culture-banner-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.06;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,229,255,0.3) 8px, rgba(0,229,255,0.3) 9px),
+                repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(0,229,255,0.3) 8px, rgba(0,229,255,0.3) 9px);
+        }
+        .culture-banner-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+        }
+        .culture-banner-content .banner-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--cyan-glow) 0%, var(--pink-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .culture-banner-content .banner-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 70%, #b3f5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .culture-banner-content .banner-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        /* ==================== 企业文化入口卡片（可点击展开） ==================== */
+        .culture-entry-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin-bottom: 4px;
+        }
+        .culture-entry-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(0, 229, 255, 0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .culture-entry-card:hover {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 2px 20px rgba(0, 229, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        .culture-entry-card:hover::before {
+            opacity: 1;
+        }
+        .culture-entry-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(0, 102, 255, 0.08) 100%);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--cyan-glow);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .culture-entry-body {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .culture-entry-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .culture-entry-mission {
+            font-size: 12px;
+            color: rgba(0, 229, 255, 0.7);
+            line-height: 1.5;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+        .culture-entry-vision {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .culture-entry-arrow {
+            color: rgba(0, 229, 255, 0.3);
+            font-size: 14px;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .culture-entry-card:hover .culture-entry-arrow {
+            color: var(--cyan-glow);
+            transform: translateX(3px);
+        }
+        .culture-entry-card.expanded .culture-entry-arrow {
+            transform: rotate(90deg);
+            color: var(--cyan-glow);
+        }
+        .culture-entry-card.expanded:hover .culture-entry-arrow {
+            transform: rotate(90deg);
+        }
+
+        /* 徽章墙折叠/展开动画 */
+        .badge-wall-wrapper {
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+        .badge-wall-wrapper.open {
+            max-height: 500px;
+            opacity: 1;
+            margin-bottom: 4px;
+        }
+        @media (min-width: 769px) {
+            .badge-wall-wrapper.open {
+                max-height: 800px;
+            }
+        }
+
+        /* ===== 板块入口卡片配色变体 ===== */
+        .culture-entry-card.entry-growth .culture-entry-icon {
+            background: linear-gradient(135deg, rgba(7, 193, 96, 0.14) 0%, rgba(7, 193, 96, 0.06) 100%);
+            border-color: rgba(7, 193, 96, 0.2);
+            color: #07c160;
+        }
+        .culture-entry-card.entry-growth:hover {
+            border-color: #07c160;
+            box-shadow: 0 2px 20px rgba(7, 193, 96, 0.1);
+        }
+        .culture-entry-card.entry-growth .culture-entry-mission {
+            color: rgba(7, 193, 96, 0.7);
+        }
+        .culture-entry-card.entry-growth .culture-entry-arrow {
+            color: rgba(7, 193, 96, 0.3);
+        }
+        .culture-entry-card.entry-growth:hover .culture-entry-arrow,
+        .culture-entry-card.entry-growth.expanded .culture-entry-arrow {
+            color: #07c160;
+        }
+
+        .culture-entry-card.entry-benefits .culture-entry-icon {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.14) 0%, rgba(255, 107, 53, 0.06) 100%);
+            border-color: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+        }
+        .culture-entry-card.entry-benefits:hover {
+            border-color: #ff6b35;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.1);
+        }
+        .culture-entry-card.entry-benefits .culture-entry-mission {
+            color: rgba(255, 107, 53, 0.7);
+        }
+        .culture-entry-card.entry-benefits .culture-entry-arrow {
+            color: rgba(255, 107, 53, 0.3);
+        }
+        .culture-entry-card.entry-benefits:hover .culture-entry-arrow,
+        .culture-entry-card.entry-benefits.expanded .culture-entry-arrow {
+            color: #ff6b35;
+        }
+
+        .culture-entry-card.entry-life .culture-entry-icon {
+            background: linear-gradient(135deg, rgba(255, 101, 163, 0.14) 0%, rgba(255, 101, 163, 0.06) 100%);
+            border-color: rgba(255, 101, 163, 0.2);
+            color: var(--pink-glow);
+        }
+        .culture-entry-card.entry-life:hover {
+            border-color: var(--pink-glow);
+            box-shadow: 0 2px 20px rgba(255, 101, 163, 0.1);
+        }
+        .culture-entry-card.entry-life .culture-entry-mission {
+            color: rgba(255, 101, 163, 0.7);
+        }
+        .culture-entry-card.entry-life .culture-entry-arrow {
+            color: rgba(255, 101, 163, 0.3);
+        }
+        .culture-entry-card.entry-life:hover .culture-entry-arrow,
+        .culture-entry-card.entry-life.expanded .culture-entry-arrow {
+            color: var(--pink-glow);
+        }
+
+        /* ===== 板块内容折叠区 ===== */
+        .section-detail-wrapper {
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+        .section-detail-wrapper.open {
+            /* 用足够大的 max-height 确保所有内容可见，由外层 overlay-panel 的 overflow-y:auto 负责滚动 */
+            max-height: 2000px;
+            opacity: 1;
+            margin-bottom: 4px;
+        }
+        .section-detail-inner {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+            transition: border-color 0.25s ease;
+        }
+        .section-detail-wrapper.open .section-detail-inner {
+            border-color: rgba(0, 229, 255, 0.18);
+            box-shadow: 0 2px 16px rgba(0, 229, 255, 0.06);
+        }
+        @media (min-width: 769px) {
+            .section-detail-inner {
+                padding: 20px;
+            }
+            .section-detail-wrapper.open {
+                max-height: 2000px;
+            }
+        }
+
+        /* 四大板块卡片（保留旧的 section 卡片样式用于折叠内容内部） */
+        .culture-section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+        .culture-section-card:hover {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 2px 16px rgba(0, 229, 255, 0.08);
+        }
+        .culture-section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .culture-section-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+        .culture-section-icon.icon-culture {
+            background: rgba(0, 229, 255, 0.08);
+            color: var(--cyan-glow);
+            border: 1px solid rgba(0, 229, 255, 0.18);
+        }
+        .culture-section-icon.icon-growth {
+            background: rgba(7, 193, 96, 0.08);
+            color: #07c160;
+            border: 1px solid rgba(7, 193, 96, 0.18);
+        }
+        .culture-section-icon.icon-benefits {
+            background: rgba(255, 107, 53, 0.08);
+            color: #ff6b35;
+            border: 1px solid rgba(255, 107, 53, 0.18);
+        }
+        .culture-section-icon.icon-life {
+            background: rgba(255, 101, 163, 0.08);
+            color: var(--pink-glow);
+            border: 1px solid rgba(255, 101, 163, 0.18);
+        }
+        .culture-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .culture-section-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        .culture-section-desc p {
+            margin-bottom: 6px;
+        }
+        .culture-section-desc p:last-child {
+            margin-bottom: 0;
+        }
+        .culture-highlight-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .culture-highlight-tag {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            color: var(--cyan-glow);
+            white-space: nowrap;
+        }
+
+        /* ==================== 福利数字卡片墙 ==================== */
+        .benefits-dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        }
+        @media (max-width: 480px) {
+            .benefits-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .benefit-stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.25s ease;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+        .benefit-stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 107, 53, 0.06) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .benefit-stat-card:hover {
+            border-color: rgba(255, 107, 53, 0.35);
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+        .benefit-stat-card:hover::before {
+            opacity: 1;
+        }
+        .benefit-stat-number {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ff6b35;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+        .benefit-stat-number .unit {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 2px;
+            opacity: 0.8;
+        }
+        .benefit-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        .benefit-stat-card.featured {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(255, 107, 53, 0.01) 100%);
+            border-color: rgba(255, 107, 53, 0.2);
+        }
+        .benefit-stat-card.featured .benefit-stat-number {
+            font-size: 30px;
+            background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @media (min-width: 769px) {
+            .benefits-dashboard {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .benefit-stat-card.featured {
+                grid-column: span 2;
+            }
+        }
+
+        /* ==================== 工作生活场景画廊卡片 ==================== */
+        .life-gallery {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+        .life-gallery::-webkit-scrollbar {
+            height: 3px;
+        }
+        .life-gallery::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .life-gallery::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .life-scene-card {
+            flex: 0 0 auto;
+            width: 80px;
+            min-height: 130px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+        .life-scene-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 101, 163, 0.08) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .life-scene-card:hover,
+        .life-scene-card.active {
+            width: 140px;
+            border-color: rgba(255, 101, 163, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 101, 163, 0.12);
+        }
+        .life-scene-card:hover::before,
+        .life-scene-card.active::before {
+            opacity: 1;
+        }
+        .life-scene-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 101, 163, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--pink-glow);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        .life-scene-card:hover .life-scene-icon,
+        .life-scene-card.active .life-scene-icon {
+            background: rgba(255, 101, 163, 0.16);
+            transform: scale(1.05);
+        }
+        .life-scene-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffffff;
+            position: relative;
+            z-index: 1;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+        .life-scene-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .life-scene-card:hover .life-scene-desc,
+        .life-scene-card.active .life-scene-desc {
+            opacity: 1;
+            max-height: 60px;
+        }
+
+        /* ==================== 应届生成长路径：横向时间线 ==================== */
+        .growth-timeline {
+            margin-top: 10px;
+        }
+        .growth-timeline-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .growth-timeline-header::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: #07c160;
+            border-radius: 2px;
+        }
+        .growth-track-container {
+            position: relative;
+            padding-top: 10px;
+            margin-bottom: 4px;
+        }
+        .growth-track-line {
+            position: absolute;
+            top: 21px;
+            left: 8%;
+            right: 8%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 1;
+        }
+        .growth-track-glow {
+            position: absolute;
+            top: 21px;
+            left: 8%;
+            width: 100%;
+            right: 8%;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(7, 193, 96, 0.6) 0%, 
+                rgba(7, 193, 96, 0.4) 33%, 
+                rgba(7, 193, 96, 0.25) 66%, 
+                transparent 100%);
+            z-index: 1;
+            box-shadow: 0 0 8px rgba(7, 193, 96, 0.2);
+        }
+        .growth-nodes {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+        .growth-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            text-align: center;
+            gap: 4px;
+            cursor: default;
+            padding: 0 4px;
+        }
+        .growth-node-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            border: 2px solid rgba(7, 193, 96, 0.25);
+            color: rgba(7, 193, 96, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            transition: all 0.35s ease;
+            flex-shrink: 0;
+        }
+        .growth-node.active .growth-node-icon {
+            border-color: #07c160;
+            color: #07c160;
+            box-shadow: 0 0 14px rgba(7, 193, 96, 0.35);
+            background: rgba(7, 193, 96, 0.06);
+        }
+        .growth-node-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .growth-node.active .growth-node-time {
+            color: #07c160;
+        }
+        .growth-node-title {
+            font-size: 12px;
+            color: #fff;
+            font-weight: 600;
+            margin-top: -1px;
+        }
+        .growth-node.active .growth-node-title {
+            color: #07c160;
+        }
+        .growth-node-items {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-top: 4px;
+            width: 100%;
+        }
+        .growth-node-item {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            padding: 4px 7px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .growth-node.active .growth-node-item {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(7, 193, 96, 0.04);
+            border-color: rgba(7, 193, 96, 0.12);
+        }
+        .growth-timeline-footer {
+            font-size: 9px;
+            color: rgba(97, 119, 150, 0.6);
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.06);
+        }
+
+        @media (min-width: 769px) {
+            .growth-track-line,
+            .growth-track-glow {
+                top: 24px;
+            }
+            .growth-node-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
+            }
+            .growth-node-time {
+                font-size: 11px;
+            }
+            .growth-node-title {
+                font-size: 13px;
+            }
+            .growth-node-item {
+                font-size: 10.5px;
+                padding: 5px 8px;
+            }
+        }
+
+        /* PC端适配 */
+        @media (min-width: 769px) {
+            .culture-banner {
+                height: 110px;
+            }
+            .culture-banner-content .banner-icon {
+                font-size: 52px;
+            }
+            .culture-banner-content .banner-title {
+                font-size: 26px;
+            }
+            .culture-section-card {
+                padding: 20px;
+            }
+            .culture-section-title {
+                font-size: 16px;
+            }
+            .culture-section-desc {
+                font-size: 13px;
+            }
+        }
+
+        /* PC端面板适配 */
+        @media (min-width: 769px) {
+            .overlay-panel {
+                max-width: 620px;
+                max-height: 90vh;
+                top: 5vh;
+                bottom: auto;
+                border-radius: 20px;
+                left: 50%;
+                transform: translate(-50%, 110%);
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+                visibility: hidden;
+                pointer-events: none;
+            }
+            .overlay-panel.active {
+                transform: translate(-50%, 0);
+                visibility: visible;
+                pointer-events: auto;
+            }
+            .bg-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 14px;
+            }
+            .bg-card {
+                padding: 20px 16px;
+            }
+            .bg-card-abbr {
+                font-size: 30px;
+            }
+            .bg-card-name {
+                font-size: 14px;
+            }
+            .bg-card-desc {
+                font-size: 11px;
+            }
+            .panel-content {
+                padding: 20px 24px 40px;
+                gap: 14px;
+            }
+        }
+        /* ==================== 事业群详情：右侧滑入面板 ==================== */
+        .bg-detail-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 55%);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow: hidden;
+        }
+
+        .bg-detail-panel.active {
+            transform: translateX(0);
+        }
+
+        .bg-detail-navbar {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 14px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+        }
+
+        .bg-detail-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            color: var(--cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .bg-detail-back:hover { background: rgba(0, 229, 255, 0.15); }
+
+        .bg-detail-abbr-badge {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--cyan-glow) 0%, #0088ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bg-detail-content {
+            flex: 1;
+            padding: 20px 20px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .bg-detail-hero {
+            text-align: center;
+            padding: 10px 0 16px;
+        }
+
+        .bg-detail-hero .hero-abbr {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, var(--cyan-glow) 0%, #0088ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .bg-detail-hero .hero-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .bg-detail-hero .hero-eng {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .bg-detail-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .bg-detail-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cyan-glow);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bg-detail-section h3::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--cyan-glow);
+            border-radius: 2px;
+        }
+
+        .bg-detail-section p {
+            font-size: 13px;
+            color: #bcc8da;
+            line-height: 1.8;
+        }
+
+        .bg-detail-tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .bg-detail-tag {
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            color: var(--cyan-glow);
+        }
+
+        .bg-detail-jobs-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 12px 0 4px;
+            flex-shrink: 0;
+            border-top: 1px dashed rgba(255,255,255,0.06);
+        }
+
+        /* WXG 配色 */
+        .bg-detail-panel.wxg-theme .bg-detail-abbr-badge,
+        .bg-detail-panel.wxg-theme .hero-abbr {
+            background: linear-gradient(135deg, #07c160 0%, #00e676 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        .bg-detail-panel.wxg-theme .bg-detail-section h3 { color: #07c160; }
+        .bg-detail-panel.wxg-theme .bg-detail-section h3::before { background: #07c160; }
+        .bg-detail-panel.wxg-theme .bg-detail-tag { color: #07c160; border-color: rgba(7, 193, 96, 0.2); background: rgba(7, 193, 96, 0.06); }
+        .bg-detail-panel.wxg-theme .bg-detail-back { color: #07c160; border-color: rgba(7, 193, 96, 0.2); background: rgba(7, 193, 96, 0.06); }
+
+        /* IEG 配色 */
+        .bg-detail-panel.ieg-theme .bg-detail-abbr-badge,
+        .bg-detail-panel.ieg-theme .hero-abbr {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        .bg-detail-panel.ieg-theme .bg-detail-section h3 { color: #ff6b35; }
+        .bg-detail-panel.ieg-theme .bg-detail-section h3::before { background: #ff6b35; }
+        .bg-detail-panel.ieg-theme .bg-detail-tag { color: #ff6b35; border-color: rgba(255, 107, 53, 0.2); background: rgba(255, 107, 53, 0.06); }
+        .bg-detail-panel.ieg-theme .bg-detail-back { color: #ff6b35; border-color: rgba(255, 107, 53, 0.2); background: rgba(255, 107, 53, 0.06); }
+
+        /* CDG 配色 */
+        .bg-detail-panel.cdg-theme .bg-detail-abbr-badge,
+        .bg-detail-panel.cdg-theme .hero-abbr {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        .bg-detail-panel.cdg-theme .bg-detail-section h3 { color: #ffd700; }
+        .bg-detail-panel.cdg-theme .bg-detail-section h3::before { background: #ffd700; }
+        .bg-detail-panel.cdg-theme .bg-detail-tag { color: #ffd700; border-color: rgba(255, 215, 0, 0.2); background: rgba(255, 215, 0, 0.06); }
+        .bg-detail-panel.cdg-theme .bg-detail-back { color: #ffd700; border-color: rgba(255, 215, 0, 0.2); background: rgba(255, 215, 0, 0.06); }
+
+        /* PC端适配 */
+        @media (min-width: 769px) {
+            .bg-detail-panel {
+                max-width: 520px;
+                max-height: 90vh;
+                top: 5vh;
+                bottom: auto;
+                left: auto;
+                right: 0;
+                border-radius: 20px 0 0 20px;
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            }
+            .bg-detail-hero .hero-abbr {
+                font-size: 56px;
+                letter-spacing: 8px;
+            }
+            .bg-detail-content {
+                padding: 24px 28px 40px;
+            }
+        }
+
+        /* ==================== 对话面板：底部弹起 ==================== */
+        .chat-panel {
+            position: fixed;
+            inset: 0;
+            top: 0;
+            z-index: 998;
+            background: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 55%);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .chat-panel.active {
+            transform: translateY(0);
+        }
+
+        .chat-panel-navbar {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 14px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+        }
+        .chat-panel-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            color: var(--cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .chat-panel-back:hover { background: rgba(0, 229, 255, 0.15); }
+        .chat-panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffffff 70%, #b3f5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .chat-msg {
+            display: flex;
+            gap: 8px;
+            max-width: 90%;
+            animation: msgSlideIn 0.3s ease-out;
+        }
+        @keyframes msgSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .chat-msg.assistant {
+            align-self: flex-start;
+        }
+
+        .chat-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        .chat-msg.user .chat-avatar {
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            color: var(--cyan-glow);
+        }
+        .chat-msg.assistant .chat-avatar {
+            background: rgba(255, 101, 163, 0.1);
+            border: 1px solid rgba(255, 101, 163, 0.2);
+            color: var(--pink-glow);
+        }
+
+        .chat-bubble {
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.7;
+            word-break: break-word;
+        }
+        .chat-msg.user .chat-bubble {
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.18);
+            border-bottom-right-radius: 4px;
+            color: #e0f7ff;
+        }
+        .chat-msg.assistant .chat-bubble {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-bottom-left-radius: 4px;
+            color: #d0d9e8;
+        }
+
+        /* 打字动画 */
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan-glow);
+            animation: dotBounce 1.4s infinite ease-in-out;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 对话底部输入区 */
+        .chat-input-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid rgba(0, 229, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .chat-input-area .chat-text-input {
+            flex: 1;
+            background: rgba(14, 26, 48, 0.85);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 20px;
+            outline: none;
+            color: #ffffff;
+            font-size: 13px;
+            height: 38px;
+            padding: 0 16px;
+        }
+        .chat-input-area .chat-text-input::placeholder { color: #405570; }
+        .chat-input-area .chat-send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            color: var(--cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .chat-input-area .chat-send-btn:hover {
+            background: rgba(0, 229, 255, 0.2);
+        }
+        .chat-input-area .chat-send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* PC端对话面板适配 */
+        @media (min-width: 769px) {
+            .chat-panel {
+                max-width: 580px;
+                border-radius: 20px 20px 0 0;
+                left: 50%;
+                transform: translate(-50%, 100%);
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+            }
+            .chat-panel.active {
+                transform: translate(-50%, 0);
+            }
+            .chat-messages {
+                padding: 20px 28px;
+            }
+            .chat-bubble {
+                font-size: 14px;
+            }
+            .chat-input-area {
+                padding: 16px 24px;
+            }
+            .chat-input-area .chat-text-input {
+                font-size: 14px;
+                height: 44px;
+            }
+        }
+
+        /* API Key 配置弹窗 */
+        .api-key-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(5, 10, 22, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .api-key-modal.active { display: flex; }
+        .api-key-dialog {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 380px;
+        }
+        .api-key-dialog h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        .api-key-input {
+            width: 100%;
+            background: rgba(14, 26, 48, 0.85);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 10px;
+            outline: none;
+            color: #ffffff;
+            font-size: 12px;
+            padding: 10px 12px;
+        }
+        .api-key-input::placeholder { color: #405570; }
+        .api-key-input:focus { border-color: var(--cyan-glow); }
+        .api-key-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: flex-end;
+        }
+        .api-key-cancel {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: transparent;
+            color: #bcc8da;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .api-key-save {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, var(--cyan-glow), #0088ff);
+            color: #000;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ========== PC端：左侧企鹅面板 ========== -->
+    <div class="pc-left-panel">
+        <div class="stage-container">
+            <div class="light-beam"></div>
+            <div class="light-glow-core"></div>
+            <img src="goose.png" class="stage-avatar">
+        </div>
+    </div>
+
+    <!-- ========== PC端：右侧内容面板 ========== -->
+    <div class="pc-right-panel">
+        <div class="pc-header-section">
+            <h1>Hi~，我是你的未来鹅顾问</h1>
+            <p>全学段大学生一站式职业陪伴智能体</p>
+        </div>
+
+        <div class="portal-grid">
+            <div class="portal-card" onclick="openModule('ecology')">
+                <div class="icon-container"><i class="fa-solid fa-seedling"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>鹅厂生态树</h2>
+                    <p class="sub-desc">更了解，更热爱</p>
+                </div>
+            </div>
+            <div class="portal-card" onclick="openModule('tools')">
+                <div class="icon-container"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>鹅厂好工具</h2>
+                    <p class="sub-desc">助力每一份灵感落地</p>
+                </div>
+            </div>
+            <div class="portal-card" onclick="openModule('culture')">
+                <div class="icon-container"><i class="fa-solid fa-heart"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>文化与福利</h2>
+                    <p class="sub-desc">创造价值，成就自己</p>
+                </div>
+            </div>
+            <div class="portal-card emotional-core" onclick="openModule('treehole')">
+                <div class="icon-container"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>求职树洞</h2>
+                    <p class="sub-desc">7×24H 接纳你的求职小烦恼</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-card-horizontal">
+            <div class="timeline-header">腾讯校招求职参考时间线</div>
+            <div class="timeline-track-container">
+                <div class="track-bg-line"></div>
+                <div class="track-progress-line"></div>
+                <div class="timeline-nodes">
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-rocket"></i></div>
+                        <div class="t-time">7-8月</div>
+                        <div class="t-title">提前批</div>
+                        <div class="t-desc">锁定转正绿卡</div>
+                    </div>
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="t-time">8-10月</div>
+                        <div class="t-title">秋招批</div>
+                        <div class="t-desc">全线岗位爆发</div>
+                    </div>
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-seedling"></i></div>
+                        <div class="t-time">次年3-5月</div>
+                        <div class="t-title">春招批</div>
+                        <div class="t-desc">补录与新机会</div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-footer-note">
+                * 提前批以技术岗为主，与秋招批不冲突，可叠加投递
+            </div>
+        </div>
+
+        <div class="chat-input-bar-container">
+            <input type="text" class="chat-text-input" placeholder="跟我聊聊你现在的迷茫或压力..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="audio-voice-btn" onclick="toggleVoice()" title="语音输入">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button class="chat-send-btn" onclick="sendChat()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== 移动端：原有结构保持不变 ========== -->
+    <!-- 顶部标题区 -->
+    <div class="header-section">
+        <h1>Hi~，我是你的未来鹅顾问</h1>
+        <p>全学段大学生一站式职业陪伴智能体</p>
+    </div>
+
+    <!-- 舞台 + 4模块包裹区（卡片绝对定位覆盖其中） -->
+    <div class="stage-and-portal-wrapper">
+
+        <!-- 核心舞台：企鹅放大 -->
+        <div class="stage-container">
+            <div class="light-beam"></div>
+            <div class="light-glow-core"></div>
+            <img src="goose.png" id="gooseAvatar" class="stage-avatar">
+        </div>
+
+        <!-- 大卡片：绝对定位，图层在4模块下方，纵向拉长 -->
+        <div class="status-overlap-card"></div>
+
+        <!-- 4 大情感陪伴功能模块（图层在卡片之上） -->
+        <div class="portal-grid">
+            <div class="portal-card" onclick="openModule('ecology')">
+                <div class="icon-container"><i class="fa-solid fa-seedling"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>鹅厂生态树</h2>
+                    <p class="sub-desc">更了解，更热爱</p>
+                </div>
+            </div>
+            <div class="portal-card" onclick="openModule('tools')">
+                <div class="icon-container"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>鹅厂好工具</h2>
+                    <p class="sub-desc">助力每一份灵感落地</p>
+                </div>
+            </div>
+            <div class="portal-card" onclick="openModule('culture')">
+                <div class="icon-container"><i class="fa-solid fa-heart"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>文化与福利</h2>
+                    <p class="sub-desc">创造价值，成就自己</p>
+                </div>
+            </div>
+            <div class="portal-card emotional-core" onclick="openModule('treehole')">
+                <div class="icon-container"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div class="card-text-wrapper">
+                    <h2>求职树洞</h2>
+                    <p class="sub-desc">7×24H 接纳你的求职小烦恼</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 底部固态区（横向线性节点时间轴 + 语音输入常驻对话框） -->
+    <div class="bottom-dock-section">
+        
+        <!-- 🚀 全新：横向节点型参考时间线 -->
+        <div class="timeline-card-horizontal">
+            <div class="timeline-header">腾讯校招求职参考时间线</div>
+            
+            <div class="timeline-track-container">
+                <!-- 贯穿的时间轨道线 -->
+                <div class="track-bg-line"></div>
+                <!-- 点亮提前批的蓝色发光线 -->
+                <div class="track-progress-line"></div>
+                
+                <div class="timeline-nodes">
+                    <!-- 节点 1：提前批 -->
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-rocket"></i></div>
+                        <div class="t-time">7-8月</div>
+                        <div class="t-title">提前批</div>
+                        <div class="t-desc">锁定转正绿卡</div>
+                    </div>
+                    
+                    <!-- 节点 2：秋招批 -->
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="t-time">8-10月</div>
+                        <div class="t-title">秋招批</div>
+                        <div class="t-desc">全线岗位爆发</div>
+                    </div>
+                    
+                    <!-- 节点 3：春招批 -->
+                    <div class="t-node">
+                        <div class="t-icon"><i class="fa-solid fa-seedling"></i></div>
+                        <div class="t-time">次年3-5月</div>
+                        <div class="t-title">春招批</div>
+                        <div class="t-desc">补录与新机会</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部淡色免责/提示文字 -->
+            <div class="timeline-footer-note">
+                * 提前批以技术岗为主，与秋招批不冲突，可叠加投递
+            </div>
+        </div>
+
+        <!-- 对话框 -->
+        <div class="chat-input-bar-container">
+            <input type="text" id="chatInput" class="chat-text-input" placeholder="跟我聊聊你现在的迷茫或压力..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="audio-voice-btn" id="btnVoice" onclick="toggleVoice()" title="语音输入">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button class="chat-send-btn" onclick="sendChat()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==================== 鹅厂生态树：全屏覆盖面板 ==================== -->
+<div class="overlay-panel" id="ecologyPanel">
+    <!-- 顶部导航 -->
+    <div class="panel-navbar">
+        <button class="panel-back-btn" onclick="closePanel('ecologyPanel')">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="panel-title-group">
+            <div class="panel-title">鹅厂生态树</div>
+            <div class="panel-subtitle">腾讯六大事业群</div>
+        </div>
+        <div class="panel-spacer"></div>
+    </div>
+
+    <!-- 事业群卡片网格 -->
+    <div class="panel-content">
+        <div class="bg-grid">
+            <!-- WXG -->
+            <div class="bg-card wxg" onclick="showBgDetail('wxg')">
+                <div class="bg-card-abbr">WXG</div>
+                <div class="bg-card-name">微信事业群</div>
+                <div class="bg-card-desc">连接一切的社交生态，微信月活超13亿</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">微信</span>
+                    <span class="bg-tag">企业微信</span>
+                    <span class="bg-tag">视频号</span>
+                </div>
+            </div>
+
+            <!-- IEG -->
+            <div class="bg-card ieg" onclick="showBgDetail('ieg')">
+                <div class="bg-card-abbr">IEG</div>
+                <div class="bg-card-name">互动娱乐事业群</div>
+                <div class="bg-card-desc">全球领先的游戏研发与发行平台</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">王者荣耀</span>
+                    <span class="bg-tag">和平精英</span>
+                    <span class="bg-tag">天美/光子</span>
+                </div>
+            </div>
+
+            <!-- CSIG -->
+            <div class="bg-card" onclick="showBgDetail('csig')">
+                <div class="bg-card-abbr">CSIG</div>
+                <div class="bg-card-name">云与智慧产业事业群</div>
+                <div class="bg-card-desc">产业互联网的数字化助手与基础底座</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">腾讯云</span>
+                    <span class="bg-tag">混元大模型</span>
+                    <span class="bg-tag">地图</span>
+                </div>
+            </div>
+
+            <!-- PCG -->
+            <div class="bg-card" onclick="showBgDetail('pcg')">
+                <div class="bg-card-abbr">PCG</div>
+                <div class="bg-card-name">平台与内容事业群</div>
+                <div class="bg-card-desc">内容生态与社交平台深度融合</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">QQ</span>
+                    <span class="bg-tag">腾讯视频</span>
+                    <span class="bg-tag">腾讯新闻</span>
+                </div>
+            </div>
+
+            <!-- CDG -->
+            <div class="bg-card cdg" onclick="showBgDetail('cdg')">
+                <div class="bg-card-abbr">CDG</div>
+                <div class="bg-card-name">企业发展事业群</div>
+                <div class="bg-card-desc">金融科技与广告营销双轮驱动</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">微信支付</span>
+                    <span class="bg-tag">腾讯广告</span>
+                    <span class="bg-tag">FiT</span>
+                </div>
+            </div>
+
+            <!-- TEG -->
+            <div class="bg-card" onclick="showBgDetail('teg')">
+                <div class="bg-card-abbr">TEG</div>
+                <div class="bg-card-name">技术工程事业群</div>
+                <div class="bg-card-desc">技术中台与基础架构的坚实底座</div>
+                <div class="bg-card-tags">
+                    <span class="bg-tag">AI Lab</span>
+                    <span class="bg-tag">量子实验室</span>
+                    <span class="bg-tag">技术中台</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer-hint">点击卡片了解事业群详情与校招岗位</div>
+</div>
+
+<!-- ==================== 文化与福利：全屏覆盖面板 ==================== -->
+<div class="overlay-panel" id="culturePanel">
+    <div class="panel-navbar">
+        <button class="panel-back-btn" onclick="closePanel('culturePanel')">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="panel-title-group">
+            <div class="panel-title">文化与福利</div>
+            <div class="panel-subtitle">创造价值，成就自己</div>
+        </div>
+        <div class="panel-spacer"></div>
+    </div>
+
+    <div class="panel-content" id="culturePanelContent">
+        <!-- 企业文化入口卡片（点击展开徽章墙） -->
+        <div class="culture-entry-card" id="cultureEntryCard" onclick="toggleBadgeWall()">
+            <div class="culture-entry-icon"><i class="fa-solid fa-shield-heart"></i></div>
+            <div class="culture-entry-body">
+                <div class="culture-entry-title">企业文化</div>
+                <div class="culture-entry-mission">使命：用户为本，科技向善</div>
+                <div class="culture-entry-vision">愿景：成为最受尊敬的互联网企业</div>
+            </div>
+            <div class="culture-entry-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+
+        <!-- 企业文化：IP 互动徽章墙（折叠区） -->
+        <div class="badge-wall-wrapper" id="badgeWallWrapper">
+        <div class="badge-wall" id="badgeWall" data-active="">
+            <!-- 粒子流背景 -->
+            <div class="badge-wall-particles" id="badgeParticles"></div>
+            <!-- 粒子连线 -->
+            <div class="badge-wall-connections">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <line class="connection-line" x1="50" y1="50" x2="50" y2="12" />
+                    <line class="connection-line" x1="50" y1="50" x2="88" y2="50" />
+                    <line class="connection-line" x1="50" y1="50" x2="50" y2="88" />
+                    <line class="connection-line" x1="50" y1="50" x2="12" y2="50" />
+                </svg>
+            </div>
+            <!-- 中央企鹅 -->
+            <div class="badge-wall-core">
+                <div class="core-ring"></div>
+                <div class="badge-wall-pulse"></div>
+                <img src="goose.png" class="badge-wall-goose" alt="企鹅">
+                <div class="core-label">TENCENT</div>
+            </div>
+            <!-- 四枚价值观徽章 -->
+            <!-- 上：正直（盾牌） -->
+            <div class="value-badge pos-top" data-value="integrity" 
+                 onmouseenter="activateBadge('integrity')" onmouseleave="deactivateBadge()">
+                <div class="badge-icon-wrapper"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="badge-label">正直</span>
+                <div class="badge-tooltip">坚守底线，坦诚公正<br>不唯上不唯权</div>
+            </div>
+            <!-- 右：进取（火箭） -->
+            <div class="value-badge pos-right" data-value="enterprise"
+                 onmouseenter="activateBadge('enterprise')" onmouseleave="deactivateBadge()">
+                <div class="badge-icon-wrapper"><i class="fa-solid fa-rocket"></i></div>
+                <span class="badge-label">进取</span>
+                <div class="badge-tooltip">拥抱变化，持续突破<br>和公司一起升级</div>
+            </div>
+            <!-- 下：协作（齿轮） -->
+            <div class="value-badge pos-bottom" data-value="collaboration"
+                 onmouseenter="activateBadge('collaboration')" onmouseleave="deactivateBadge()">
+                <div class="badge-icon-wrapper"><i class="fa-solid fa-gears"></i></div>
+                <span class="badge-label">协作</span>
+                <div class="badge-tooltip">开放协同，主动补位<br>一起搞大事</div>
+            </div>
+            <!-- 左：创造（灯泡） -->
+            <div class="value-badge pos-left" data-value="creativity"
+                 onmouseenter="activateBadge('creativity')" onmouseleave="deactivateBadge()">
+                <div class="badge-icon-wrapper"><i class="fa-solid fa-lightbulb"></i></div>
+                <span class="badge-label">创造</span>
+                <div class="badge-tooltip">以用户价值为导向<br>你的想法会被重视</div>
+            </div>
+        </div>
+        </div><!-- /badge-wall-wrapper -->
+
+        <!-- 成长发展：入口卡片 -->
+        <div class="culture-entry-card entry-growth" id="growthEntryCard" onclick="toggleSection('growth')">
+            <div class="culture-entry-icon"><i class="fa-solid fa-seedling"></i></div>
+            <div class="culture-entry-body">
+                <div class="culture-entry-title">成长发展</div>
+                <div class="culture-entry-mission">双通道晋升 · 导师带教 · 活水计划</div>
+                <div class="culture-entry-vision">不设天花板，与公司一起升级</div>
+            </div>
+            <div class="culture-entry-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+        <!-- 成长发展：折叠内容 -->
+        <div class="section-detail-wrapper" id="growthDetailWrapper">
+            <div class="section-detail-inner">
+                <!-- 应届生成长路径：横向时间线 -->
+                <div class="growth-timeline">
+                    <div class="growth-timeline-header">应届生成长路径</div>
+                    <div class="growth-track-container">
+                        <div class="growth-track-line"></div>
+                        <div class="growth-track-glow"></div>
+                        <div class="growth-nodes">
+                            <!-- 阶段 1：新人融入期 -->
+                            <div class="growth-node" id="growthNode0"
+                                 onmouseenter="activateGrowthNode(0)" onmouseleave="deactivateGrowthNode()">
+                                <div class="growth-node-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                                <div class="growth-node-time">0-3 个月</div>
+                                <div class="growth-node-title">新人融入期</div>
+                                <div class="growth-node-items">
+                                    <div class="growth-node-item">专属导师 1v1 带教</div>
+                                    <div class="growth-node-item">校招新人集训营</div>
+                                    <div class="growth-node-item">岗位技能专项培训</div>
+                                </div>
+                            </div>
+                            <!-- 阶段 2：能力提升期 -->
+                            <div class="growth-node" id="growthNode1"
+                                 onmouseenter="activateGrowthNode(1)" onmouseleave="deactivateGrowthNode()">
+                                <div class="growth-node-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                                <div class="growth-node-time">3-12 个月</div>
+                                <div class="growth-node-title">能力提升期</div>
+                                <div class="growth-node-items">
+                                    <div class="growth-node-item">项目实战轮岗锻炼</div>
+                                    <div class="growth-node-item">腾讯学院内训课程</div>
+                                    <div class="growth-node-item">跨部门交流学习</div>
+                                </div>
+                            </div>
+                            <!-- 阶段 3：长期发展期 -->
+                            <div class="growth-node" id="growthNode2"
+                                 onmouseenter="activateGrowthNode(2)" onmouseleave="deactivateGrowthNode()">
+                                <div class="growth-node-icon"><i class="fa-solid fa-star"></i></div>
+                                <div class="growth-node-time">1 年 +</div>
+                                <div class="growth-node-title">长期发展期</div>
+                                <div class="growth-node-items">
+                                    <div class="growth-node-item">技术 / 管理双通道晋升</div>
+                                    <div class="growth-node-item">专项人才培养项目</div>
+                                    <div class="growth-node-item">行业前沿技术分享</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="growth-timeline-footer">
+                        * 每位应届生入职即分配专属导师，成长节奏因个人和团队而异
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 福利保障：入口卡片 -->
+        <div class="culture-entry-card entry-benefits" id="benefitsEntryCard" onclick="toggleSection('benefits')">
+            <div class="culture-entry-icon"><i class="fa-solid fa-gem"></i></div>
+            <div class="culture-entry-body">
+                <div class="culture-entry-title">福利保障</div>
+                <div class="culture-entry-mission">安居贷 · 商业保险 · 免费班车食堂</div>
+                <div class="culture-entry-vision">让你安心工作，无忧生活</div>
+            </div>
+            <div class="culture-entry-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+        <!-- 福利保障：折叠内容 - 数字卡片墙 -->
+        <div class="section-detail-wrapper" id="benefitsDetailWrapper">
+            <div class="section-detail-inner">
+                <div class="benefits-dashboard">
+                    <!-- 安居计划 - 特色卡片，跨列展示 -->
+                    <div class="benefit-stat-card featured">
+                        <div class="benefit-stat-number">90<span class="unit">万</span></div>
+                        <div class="benefit-stat-label">安居计划 · 6年免息住房贷款<br>助你在城市安家</div>
+                    </div>
+                    <div class="benefit-stat-card">
+                        <div class="benefit-stat-number">五险<span class="unit">+补充</span></div>
+                        <div class="benefit-stat-label">商业保险覆盖员工及家属<br>看病无忧</div>
+                    </div>
+                    <div class="benefit-stat-card">
+                        <div class="benefit-stat-number">免费<span class="unit">早晚餐</span></div>
+                        <div class="benefit-stat-label">品质食堂 + 全城班车<br>通勤餐饮全覆盖</div>
+                    </div>
+                    <div class="benefit-stat-card">
+                        <div class="benefit-stat-number">节日<span class="unit">礼包</span></div>
+                        <div class="benefit-stat-label">生日 · 周年 · 春节 · 中秋<br>仪式感从不缺席</div>
+                    </div>
+                    <div class="benefit-stat-card">
+                        <div class="benefit-stat-number">Q币<span class="unit">额度</span></div>
+                        <div class="benefit-stat-label">每月免费Q币福利<br>游戏党专属快乐</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工作生活：入口卡片 -->
+        <div class="culture-entry-card entry-life" id="lifeEntryCard" onclick="toggleSection('life')">
+            <div class="culture-entry-icon"><i class="fa-solid fa-smile"></i></div>
+            <div class="culture-entry-body">
+                <div class="culture-entry-title">工作生活</div>
+                <div class="culture-entry-mission">弹性工作 · 员工社团 · 地标办公</div>
+                <div class="culture-entry-vision">快乐工作，认真生活</div>
+            </div>
+            <div class="culture-entry-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+        <!-- 工作生活：折叠内容 - 场景画廊卡片 -->
+        <div class="section-detail-wrapper" id="lifeDetailWrapper">
+            <div class="section-detail-inner">
+                <div class="life-gallery">
+                    <div class="life-scene-card active">
+                        <div class="life-scene-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div class="life-scene-name">弹性工作</div>
+                        <div class="life-scene-desc">不打卡，弹性上下班，高效协作与自由时间兼顾</div>
+                    </div>
+                    <div class="life-scene-card">
+                        <div class="life-scene-icon"><i class="fa-solid fa-people-group"></i></div>
+                        <div class="life-scene-name">员工社团</div>
+                        <div class="life-scene-desc">篮球、足球、瑜伽、摄影……近百个社团任选</div>
+                    </div>
+                    <div class="life-scene-card">
+                        <div class="life-scene-icon"><i class="fa-solid fa-plane-departure"></i></div>
+                        <div class="life-scene-name">年度旅游</div>
+                        <div class="life-scene-desc">每年团队旅游基金，和同事一起看世界</div>
+                    </div>
+                    <div class="life-scene-card">
+                        <div class="life-scene-icon"><i class="fa-solid fa-building"></i></div>
+                        <div class="life-scene-name">地标办公</div>
+                        <div class="life-scene-desc">滨海大厦等总部级建筑，健身房泳池攀岩墙一应俱全</div>
+                    </div>
+                    <div class="life-scene-card">
+                        <div class="life-scene-icon"><i class="fa-solid fa-mug-hot"></i></div>
+                        <div class="life-scene-name">下午茶</div>
+                        <div class="life-scene-desc">团队定期下午茶，水果奶茶点心不断</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer-hint">* 以上信息来源于腾讯校招官网 join.qq.com</div>
+</div>
+
+<!-- ==================== 鹅厂好工具面板 ==================== -->
+<div class="overlay-panel" id="toolsPanel">
+    <div class="panel-navbar">
+        <button class="panel-back-btn" onclick="closePanel('toolsPanel')">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="panel-title-group">
+            <div class="panel-title">鹅厂好工具</div>
+            <div class="panel-subtitle">助力每一份灵感落地</div>
+        </div>
+        <div class="panel-spacer"></div>
+    </div>
+
+    <div class="panel-content">
+        <div class="tools-grid">
+            <!-- 1. 腾讯混元 -->
+            <div class="tool-card tool-hunyuan" onclick="confirmOpenTool('腾讯混元', 'https://hunyuan.tencent.com')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="tool-card-name">腾讯混元</div>
+                </div>
+                <div class="tool-card-desc">多模态 AI 创作平台，文生图、文生视频、图生 3D，让创意无限延展</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">万亿</span>
+                    <span class="stat-label">参数大模型</span>
+                </div>
+            </div>
+
+            <!-- 2. CodeBuddy -->
+            <div class="tool-card tool-codebuddy" onclick="confirmOpenTool('CodeBuddy', 'https://www.codebuddy.ai')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-code"></i></div>
+                    <div class="tool-card-name">CodeBuddy</div>
+                </div>
+                <div class="tool-card-desc">AI 智能编程助手，从想法到代码，一句话就能搭建完整项目</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">AI</span>
+                    <span class="stat-label">驱动开发</span>
+                </div>
+            </div>
+
+            <!-- 3. 腾讯云 TI 平台 -->
+            <div class="tool-card tool-ti" onclick="confirmOpenTool('腾讯云 TI 平台', 'https://cloud.tencent.com/product/ti')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-brain"></i></div>
+                    <div class="tool-card-name">TI 平台</div>
+                </div>
+                <div class="tool-card-desc">一站式 AI 模型训练与部署，数据处理、标注、建模全流程覆盖</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">MLOps</span>
+                    <span class="stat-label">全栈能力</span>
+                </div>
+            </div>
+
+            <!-- 4. 腾讯 CoDesign -->
+            <div class="tool-card tool-codesign" onclick="confirmOpenTool('腾讯 CoDesign', 'https://codesign.qq.com')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-palette"></i></div>
+                    <div class="tool-card-name">CoDesign</div>
+                </div>
+                <div class="tool-card-desc">UI 设计稿在线协作平台，标注、切图、版本管理，设计与开发无缝衔接</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">设计协作</span>
+                    <span class="stat-label">效率翻倍</span>
+                </div>
+            </div>
+
+            <!-- 5. ima -->
+            <div class="tool-card tool-ima" onclick="confirmOpenTool('ima', 'https://ima.qq.com')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                    <div class="tool-card-name">ima</div>
+                </div>
+                <div class="tool-card-desc">AI 驱动智能工作台，知识库管理、文档分析、内容创作一站搞定</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">智能</span>
+                    <span class="stat-label">知识管理</span>
+                </div>
+            </div>
+
+            <!-- 6. 腾讯微搭 WeDa -->
+            <div class="tool-card tool-weda" onclick="confirmOpenTool('腾讯微搭 WeDa', 'https://weda.cloud.tencent.com')">
+                <div class="tool-card-header">
+                    <div class="tool-card-icon"><i class="fa-solid fa-cubes"></i></div>
+                    <div class="tool-card-name">微搭 WeDa</div>
+                </div>
+                <div class="tool-card-desc">低代码可视化开发平台，拖拽组件即可快速搭建小程序和 Web 应用</div>
+                <div class="tool-card-stat">
+                    <span class="stat-num">低代码</span>
+                    <span class="stat-label">极速上线</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer-hint">* 工具信息来源于腾讯官方产品页面</div>
+</div>
+
+<!-- ==================== 事业群详情：右侧滑入面板 ==================== -->
+<div class="bg-detail-panel" id="bgDetailPanel">
+    <div class="bg-detail-navbar">
+        <button class="bg-detail-back" onclick="closeBgDetail()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span class="bg-detail-abbr-badge" id="bgDetailAbbr">WXG</span>
+        <span style="font-size:13px;color:#fff;font-weight:500;" id="bgDetailName">微信事业群</span>
+    </div>
+
+    <div class="bg-detail-content" id="bgDetailContent">
+        <!-- 由 JS 动态填充 -->
+    </div>
+
+    <div class="bg-detail-jobs-hint">* 校招岗位信息以腾讯校招官网 join.qq.com 实时发布为准</div>
+</div>
+
+<!-- ==================== 对话面板：底部弹起 ==================== -->
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-navbar">
+        <button class="chat-panel-back" onclick="closeChatPanel()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span class="chat-panel-title">鹅厂顾问 · 自由对话</span>
+        <button class="chat-panel-back" onclick="openApiKeyModal()" title="API 设置" style="margin-left:auto;">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <!-- 欢迎消息 -->
+        <div class="chat-msg assistant">
+            <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="chat-bubble">
+                嗨~ 我是你的未来鹅顾问 🐧<br>
+                无论是对腾讯好奇、求职迷茫、还是想找人聊聊，我都在这里。试试问我任何问题吧~
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" class="chat-text-input" id="chatPanelInput" 
+            placeholder="聊聊你的想法..." 
+            onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button class="chat-send-btn" id="chatPanelSendBtn" onclick="sendChatMessage()">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<!-- API Key 配置弹窗 -->
+<div class="api-key-modal" id="apiKeyModal">
+    <div class="api-key-dialog">
+        <h3>配置 AI 服务</h3>
+        <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">支持 OpenAI 兼容接口（DeepSeek、通义千问等）</p>
+        <label style="font-size:12px;color:#bcc8da;display:block;margin-bottom:4px;">API Base URL</label>
+        <input type="text" id="apiBaseUrl" placeholder="https://api.openai.com/v1" class="api-key-input">
+        <label style="font-size:12px;color:#bcc8da;display:block;margin-bottom:4px;margin-top:10px;">API Key</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-..." class="api-key-input">
+        <label style="font-size:12px;color:#bcc8da;display:block;margin-bottom:4px;margin-top:10px;">模型名称</label>
+        <input type="text" id="apiModel" placeholder="gpt-4o / deepseek-chat / qwen-plus" class="api-key-input">
+        <div class="api-key-actions">
+            <button class="api-key-cancel" onclick="closeApiKeyModal()">取消</button>
+            <button class="api-key-save" onclick="saveApiConfig()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== 时间轴动态激活（PC端和移动端均处理） =====
+    document.addEventListener('DOMContentLoaded', () => {
+        // 确保所有 overlay panel 初始不显示
+        document.querySelectorAll('.overlay-panel').forEach(p => p.classList.remove('active'));
+        
+        const currentMonth = new Date().getMonth() + 1;
+
+        let progressWidth = '0%';
+        let activeIndex = 0;
+
+        if (currentMonth >= 6 && currentMonth <= 8) {
+            activeIndex = 0;
+            progressWidth = '25%';
+        } else if (currentMonth > 8 && currentMonth <= 10) {
+            activeIndex = 1;
+            progressWidth = '50%';
+        } else if (currentMonth > 10 || currentMonth <= 2) {
+            activeIndex = 1;
+            progressWidth = '75%';
+        } else if (currentMonth >= 3 && currentMonth <= 5) {
+            activeIndex = 2;
+            progressWidth = '100%';
+        }
+
+        // 处理所有时间轴容器（PC端 + 移动端）
+        document.querySelectorAll('.timeline-card-horizontal').forEach(card => {
+            const nodes = card.querySelectorAll('.t-node');
+            const progressLine = card.querySelector('.track-progress-line');
+            nodes.forEach(node => node.classList.remove('active'));
+            if (nodes[activeIndex]) {
+                nodes[activeIndex].classList.add('active');
+            }
+            if (progressLine) {
+                progressLine.style.width = progressWidth;
+            }
+        });
+    });
+
+    // ===== 模块卡片点击 =====
+    function openModule(module) {
+        if (module === 'ecology') {
+            openPanel('ecologyPanel');
+            return;
+        }
+        if (module === 'culture') {
+            openPanel('culturePanel');
+            return;
+        }
+        if (module === 'tools') {
+            openPanel('toolsPanel');
+            return;
+        }
+        if (module === 'treehole') {
+            openTreehole();
+            return;
+        }
+        const messages = {
+            jobs: '🔍 职位大解析：大厂不仅招技术岗！产品运营、市场品牌、人力资源等非技术岗位同样有大量 HC。关键是要找到与自身优势匹配的方向。'
+        };
+        let msg = messages[module] || '正在加载中...';
+        let chatInput = document.getElementById('chatInput');
+        if (!chatInput) return;
+        chatInput.value = '';
+        chatInput.placeholder = msg;
+        setTimeout(() => {
+            chatInput.placeholder = '跟我聊聊你现在的迷茫或压力...';
+        }, 5000);
+    }
+
+    // ===== 面板控制 =====
+    function openPanel(panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePanel(panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.classList.remove('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ===== 求职树洞 =====
+    const TREEHOLE_STORAGE_KEY = 'treehole_messages_v1';
+    const TREEHOLE_NICKNAME_KEY = 'treehole_nickname_v1';
+
+    // 树洞 AI 回复逻辑（本地模拟，核心 Prompt 逻辑）
+    const treeholePromptRules = {
+        // 情绪关键词 -> 共情回复模式
+        empathyPatterns: [
+            { keywords: ['被拒', '拒绝', '挂了', '没过', '失败', '落选'], 
+              replies: [
+                '抱抱你 🫂 被拒绝的滋味真的很难受，每一次投简历、每一次面试，你都付出了真心和努力。这不是你不够好，只是那个位置刚好有更适合的人。你已经很勇敢了 💗',
+                '我听到你的失落了。求职路上的每一次"不合适"都像一记重击，但请相信，这些经历正在让你变得更坚韧。要不要和我说说具体发生了什么？',
+                '被拒的感觉我懂，那种满怀期待又落空的心情真的很难熬。但你知道吗，很多后来拿到理想 offer 的人，都经历过这个阶段。你并不孤单 🐧'
+              ]
+            },
+            { keywords: ['紧张', '焦虑', '害怕', '恐惧', '担心', '慌'],
+              replies: [
+                '紧张说明你在乎，这是好事 🫂 面试前的心跳加速、手心出汗，几乎每个人都会经历。要不要试试这个：深呼吸三次，告诉自己"我已经准备好了，做到最好就够了"。',
+                '我理解那种紧张感——它其实是你身体在帮你准备应对重要时刻。试着把它看作兴奋而不是恐惧。你之前有过成功应对紧张的经历吗？想想那次你是怎么做到的 💗',
+                '面试紧张太正常了，连面了几百人的面试官有时也会紧张呢。要不要我分享几个面试前快速放松的小技巧？'
+              ]
+            },
+            { keywords: ['迷茫', '不知道', '方向', '困惑', '怎么办', '选择'],
+              replies: [
+                '迷茫其实是成长的前奏 🐧 它说明你在认真思考自己的未来，而不是随波逐流。很多人毕业时都和你一样——不确定自己适合什么、想要什么。',
+                '方向迷茫的时候，与其急着找答案，不如先问自己几个问题：做什么事情时你会忘记时间？你羡慕什么样的人的生活状态？也许答案就藏在你的日常里 💗',
+                '我听到了你的困惑。这个阶段的迷茫几乎是"标配"——大学教了我们专业知识，却很少教我们如何选择人生方向。要不要和我聊聊你目前的想法和顾虑？'
+              ]
+            },
+            { keywords: ['压力', '累', '疲惫', '崩溃', '撑不住', '好难'],
+              replies: [
+                '我能感受到你肩上的重量 🫂 求职季的压力真的很大，一边要准备笔试面试，一边还要应对毕业的各种事情。允许自己累，允许自己停下来喘口气。',
+                '辛苦了 🐧 这段时间你一定扛了很多。要不要试着把压力说出来？有时候仅仅是"说出来"这个动作，就能让心里的石头轻一些。我在这里听着。',
+                '抱抱你 💗 这种"好难"的感觉是真实的，不是你的问题。求职本来就不是一场短跑，而是一场马拉松。你已经跑得很远了，停下来喝口水不丢人。'
+              ]
+            },
+            { keywords: ['难过', '伤心', '哭', '委屈', '不开心', '失落'],
+              replies: [
+                '🫂 那些让你难过的事情，都是真实的、重要的。想哭就哭吧，情绪需要出口，而不是被压回去。我在这里陪着你。',
+                '你的委屈我听到了 💗 求职路上的每一次失落都是真实的情感，不需要对自己说"这没什么"。允许自己难过，也是一种对自己的温柔。',
+                '失落的情绪像潮水，它会来，也会退。现在的难过不代表永远，但此刻的感受值得被认真对待。要不要和我多说说？'
+              ]
+            },
+            { keywords: ['你好', '嗨', 'hello', 'hi'],
+              replies: [
+                '嗨！欢迎来到树洞 🐧💗 今天过得怎么样？有什么想和我聊聊的吗？开心的、难过的、困惑的，我都愿意听。',
+                '你好呀～我是你的树洞小企鹅 🫂 这里很安全，你可以放心说任何事。最近求职路上有什么感受想分享吗？'
+              ]
+            }
+        ],
+        // 通用共情回复
+        fallbackReplies: [
+          '我听到了 🫂 谢谢你和我说这些。有时候仅仅是把自己的感受说出来，就已经很了不起了。要不要再多聊聊？',
+          '嗯，我在听 💗 你的感受都是真实且重要的。求职路上有太多不确定性，愿意分享本身就是一种勇气。',
+          '谢谢你的信任 🐧 每个人的求职故事都是独特的，你的经历值得被认真对待。还有什么想和我说的吗？'
+        ],
+        // 情绪安抚后的自然衔接引导
+        guidancePhrases: [
+          '要不要和我说说这次面试的具体情况？',
+          '我可以帮你整理几个缓解面试紧张的小技巧，要试试吗？',
+          '你想聊聊简历优化，还是面试准备？我可以给你一些方向。',
+          '如果你愿意，我们可以一起梳理一下你目前的求职计划。',
+          '想听听我的建议，还是只是想让我陪着你？都可以的 💗'
+        ]
+    };
+
+    function getTreeholeReply(userMsg) {
+        const msg = userMsg.toLowerCase();
+        // 匹配情绪模式
+        for (const pattern of treeholePromptRules.empathyPatterns) {
+            if (pattern.keywords.some(kw => msg.includes(kw))) {
+                const reply = pattern.replies[Math.floor(Math.random() * pattern.replies.length)];
+                const guidance = treeholePromptRules.guidancePhrases[Math.floor(Math.random() * treeholePromptRules.guidancePhrases.length)];
+                return reply + '\n\n' + guidance;
+            }
+        }
+        // 无匹配时使用通用回复
+        const fallback = treeholePromptRules.fallbackReplies[Math.floor(Math.random() * treeholePromptRules.fallbackReplies.length)];
+        return fallback;
+    }
+
+    // 生成匿名昵称
+    function generateTreeholeNickname() {
+        const existing = localStorage.getItem(TREEHOLE_NICKNAME_KEY);
+        if (existing) return existing;
+        const suffixes = ['求职者', '追梦人', '奋斗鹅', '探索者', '小太阳', '追光者', '赶路人', '萌新鹅'];
+        const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+        const num = Math.floor(Math.random() * 999) + 1;
+        const nickname = '小企鹅' + suffix + num;
+        localStorage.setItem(TREEHOLE_NICKNAME_KEY, nickname);
+        return nickname;
+    }
+
+    // 加载本地对话记录
+    function loadTreeholeMessages() {
+        try {
+            const saved = localStorage.getItem(TREEHOLE_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch(e) {
+            return [];
+        }
+    }
+
+    // 保存对话记录到本地
+    function saveTreeholeMessages(messages) {
+        try {
+            localStorage.setItem(TREEHOLE_STORAGE_KEY, JSON.stringify(messages));
+        } catch(e) {
+            // localStorage 满了
+        }
+    }
+
+    // 渲染对话
+    function renderTreeholeMessages(messages) {
+        const container = document.getElementById('treeholeMessages');
+        if (!container) return;
+
+        // 保留欢迎消息
+        let html = `<div class="treehole-message ai">
+            <div class="treehole-avatar">🫂</div>
+            <div class="treehole-bubble">
+                嗨，我是你的树洞小企鹅 🐧<br>
+                在这里你可以放心说出任何烦恼——求职压力、面试焦虑、未来迷茫，我都愿意听。<br><br>
+                我不会评判你，只会陪着你 💗<br>今天想和我聊聊什么呢？
+            </div>
+        </div>`;
+
+        messages.forEach(msg => {
+            const cls = msg.role === 'user' ? 'user' : 'ai';
+            const avatar = cls === 'user' ? '🐧' : '🫂';
+            const escapedText = msg.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+            html += `<div class="treehole-message ${cls}">
+                <div class="treehole-avatar">${avatar}</div>
+                <div class="treehole-bubble">${escapedText}</div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // 添加一条消息
+    function addTreeholeMessage(role, text) {
+        const messages = loadTreeholeMessages();
+        messages.push({ role, text, time: Date.now() });
+        saveTreeholeMessages(messages);
+        renderTreeholeMessages(messages);
+    }
+
+    // 发送用户消息
+    function sendTreeholeMessage() {
+        const input = document.getElementById('treeholeInput');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        // 敏感词/危机干预检查
+        const crisisKeywords = ['自杀', '自伤', '自残', '不想活', '活不下去', '结束生命', '想死', '死了一了百了'];
+        const hasCrisis = crisisKeywords.some(kw => text.includes(kw));
+
+        addTreeholeMessage('user', text);
+        input.value = '';
+        input.style.height = 'auto';
+
+        // 危机干预
+        if (hasCrisis) {
+            setTimeout(() => {
+                addTreeholeMessage('ai', 
+                    '我听到你现在很痛苦，这些感受都很真实也很沉重 🫂\n\n' +
+                    '如果你需要专业帮助，可以拨打全国心理援助热线：400-161-9995，或寻求身边信任的人的支持。\n\n' +
+                    '我一直在这里陪着你，任何时候你想说话，我都愿意听 💗');
+            }, 600);
+            return;
+        }
+
+        // 模拟 AI 回复（实际项目中这里调用大模型 API）
+        setTimeout(() => {
+            const reply = getTreeholeReply(text);
+            addTreeholeMessage('ai', reply);
+        }, 800 + Math.random() * 600);
+    }
+
+    // 快捷消息
+    function sendQuickMessage(text) {
+        const input = document.getElementById('treeholeInput');
+        if (input) input.value = text;
+        sendTreeholeMessage();
+    }
+
+    // 键盘发送
+    function handleTreeholeKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendTreeholeMessage();
+        }
+    }
+
+    // 清空对话
+    function clearTreeholeMessages() {
+        if (confirm('确定要清空所有对话记录吗？此操作不可恢复。')) {
+            localStorage.removeItem(TREEHOLE_STORAGE_KEY);
+            renderTreeholeMessages([]);
+        }
+    }
+
+    // 打开树洞
+    function openTreehole() {
+        const introOverlay = document.getElementById('treeholeIntroOverlay');
+        if (introOverlay) {
+            introOverlay.style.display = 'flex';
+        }
+    }
+
+    // 确认进入树洞
+    function enterTreehole() {
+        const introOverlay = document.getElementById('treeholeIntroOverlay');
+        const panel = document.getElementById('treeholePanel');
+        if (introOverlay) introOverlay.style.display = 'none';
+        if (panel) {
+            panel.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        // 设置匿名昵称
+        const nickname = generateTreeholeNickname();
+        const nicknameEl = document.getElementById('treeholeNickname');
+        if (nicknameEl) nicknameEl.textContent = nickname;
+        // 加载历史消息
+        const messages = loadTreeholeMessages();
+        renderTreeholeMessages(messages);
+    }
+
+    // 关闭树洞
+    function closeTreehole() {
+        const panel = document.getElementById('treeholePanel');
+        if (panel) panel.classList.remove('active');
+    }
+
+    // 自动调整输入框高度
+    (function initTreeholeInput() {
+        const input = document.getElementById('treeholeInput');
+        if (!input) return;
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+    })();
+
+    // ===== 事业群详情数据 =====
+    const bgDetailData = {
+        wxg: {
+            abbr: 'WXG',
+            name: '微信事业群',
+            eng: 'WeiXin Group',
+            theme: 'wxg-theme',
+            color: '#07c160',
+            heroDesc: '负责微信生态体系的搭建和运营，为各行各业提供智慧化升级解决方案和连接能力。',
+            intro: '微信事业群（WXG）成立于2014年，是腾讯最核心的事业群之一。以微信这款国民级应用为基础，构建了覆盖社交、支付、内容、企业服务、搜索等领域的庞大生态体系。微信及WeChat合并月活跃账户数超13亿，是中国互联网最具影响力的平台之一。',
+            products: ['微信', '企业微信', '视频号', '微信支付', '小程序', '微信读书', '搜一搜', 'QQ邮箱'],
+            positions: '校招岗位以产品策划、前端/后端开发、客户端开发、运营为主。WXG 注重用户思维、产品sense和数据驱动能力，面试难度较高，素有"鹅厂最难进BG"之称。近年大量岗位仅通过实习转正，秋招HC有限。',
+            locations: '广州（TIT创意园/琶洲）、深圳、北京、成都'
+        },
+        ieg: {
+            abbr: 'IEG',
+            name: '互动娱乐事业群',
+            eng: 'Interactive Entertainment Group',
+            theme: 'ieg-theme',
+            color: '#ff6b35',
+            heroDesc: '全球领先的游戏研发与发行平台，负责公司互动娱乐业务的研发、运营与发展。',
+            intro: '互动娱乐事业群（IEG）是腾讯游戏业务的核心载体，旗下拥有天美、光子、魔方、北极光四大工作室群，出品了《王者荣耀》《和平精英》《英雄联盟手游》等现象级产品。腾讯是全球最大的游戏公司，IEG 在游戏研发、发行、电竞等领域均处于行业领先地位。',
+            products: ['王者荣耀', '和平精英', '英雄联盟', '金铲铲之战', 'DNF手游', '无畏契约', '欢乐斗地主', '腾讯电竞'],
+            positions: '校招岗位涵盖游戏策划（系统/数值/文案/关卡）、游戏客户端/服务器开发、游戏美术（2D/3D/TA）、游戏运营、电竞运营等。热爱游戏是重要的加分项，建议有游戏demo或分析作品。',
+            locations: '深圳、上海、成都、北京、杭州'
+        },
+        csig: {
+            abbr: 'CSIG',
+            name: '云与智慧产业事业群',
+            eng: 'Cloud and Smart Industries Group',
+            theme: '',
+            color: '#00e5ff',
+            heroDesc: '推进公司云与产业互联网战略，助力零售、医疗、教育、交通等产业的数字化升级。',
+            intro: '云与智慧产业事业群（CSIG）是腾讯ToB战略的核心，整合了腾讯云、智慧零售、安全产品、腾讯地图、优图等核心产品线，面向医疗、教育、交通、LBS等行业提供解决方案。CSIG 承载着腾讯"产业互联网"的使命，是公司增长最快的业务板块之一。',
+            products: ['腾讯云', '混元大模型', '腾讯地图', '腾讯安全', '智慧零售', '腾讯会议', '企业微信', '优图实验室'],
+            positions: '校招岗位以后端开发、前端开发、解决方案架构师、安全工程师、技术产品经理为主。需要有扎实的计算机基础，对云计算、AI等领域有热情，有相关项目经验者优先。',
+            locations: '深圳、北京、上海、广州、成都、西安'
+        },
+        pcg: {
+            abbr: 'PCG',
+            name: '平台与内容事业群',
+            eng: 'Platform and Content Group',
+            theme: '',
+            color: '#00e5ff',
+            heroDesc: '负责公司互联网平台和内容文化生态融合发展，整合社交、流量、内容三大板块。',
+            intro: '平台与内容事业群（PCG）融合了QQ社交平台与腾讯视频、腾讯新闻、QQ浏览器等核心内容产品，致力于推动IP跨平台、多形态发展，为用户创造丰富多元的数字内容体验。PCG 是腾讯内容战略的重要支柱。',
+            products: ['QQ', '腾讯视频', '腾讯新闻', 'QQ浏览器', '腾讯体育', '应用宝', 'QQ音乐', '阅文集团'],
+            positions: '校招岗位以推荐算法工程师、前端开发、客户端开发、内容运营、产品策划为主。对内容产业、社交产品有深刻理解和热情，具备数据分析能力是重要加分项。',
+            locations: '深圳、北京、上海、广州'
+        },
+        cdg: {
+            abbr: 'CDG',
+            name: '企业发展事业群',
+            eng: 'Corporate Development Group',
+            theme: 'cdg-theme',
+            color: '#ffd700',
+            heroDesc: '腾讯集团战略级新业务培育与创新发展平台，集团的"智囊团"和"探索者"。',
+            intro: '企业发展事业群（CDG）是腾讯集团战略级新业务培育与创新发展平台，始终以"赢未来"为使命，在金融科技、广告与营销服务、可持续社会价值创新等领域持续探索。同时作为专业支撑平台，在战略规划、投资并购、市场公关、管理咨询等领域提供专业支持。',
+            products: ['微信支付', '腾讯广告', '理财通', '腾讯SSV', '腾讯投资', '青腾', 'FiT金融科技', '战略发展部'],
+            positions: '校招岗位以数据分析师、商业产品经理、金融科技研发、战略分析师、投资分析师为主。金融+科技的复合背景有优势，需要具备商业洞察力和逻辑思维能力。',
+            locations: '深圳、北京、上海、香港'
+        },
+        teg: {
+            abbr: 'TEG',
+            name: '技术工程事业群',
+            eng: 'Technology and Engineering Group',
+            theme: '',
+            color: '#00e5ff',
+            heroDesc: '为公司及各事业群提供技术及运营平台支持，运营亚洲最大的网络和数据中心。',
+            intro: '技术工程事业群（TEG）是腾讯的技术中台，专注于AI、大数据、云计算、安全、数据库及网络等核心技术领域。TEG 运营着亚洲最大的网络、服务器集群和数据中心，其技术成果应用于微信、QQ等上百款产品。同时牵头腾讯技术委员会，通过内部分布式开源协同，建设技术中台，支持业务创新。',
+            products: ['AI Lab', '量子实验室', 'Robotics X', '腾讯大数据', '数据库TDSQL', '星星海服务器', '玄武实验室', '科恩实验室'],
+            positions: '校招岗位以算法工程师、基础架构研发工程师、安全工程师、数据库研发、测试开发为主。适合有科研背景的技术极客，对底层技术和前沿研究有浓厚兴趣，论文和竞赛经历是重要加分项。',
+            locations: '深圳、北京、上海、成都、广州'
+        }
+    };
+
+    // ===== 打开事业群详情面板 =====
+    function showBgDetail(bg) {
+        const data = bgDetailData[bg];
+        if (!data) return;
+
+        const panel = document.getElementById('bgDetailPanel');
+        const content = document.getElementById('bgDetailContent');
+        const abbrEl = document.getElementById('bgDetailAbbr');
+        const nameEl = document.getElementById('bgDetailName');
+
+        // 清除旧的主题 class
+        panel.className = 'bg-detail-panel';
+        if (data.theme) {
+            panel.classList.add(data.theme);
+        }
+
+        abbrEl.textContent = data.abbr;
+        nameEl.textContent = data.name;
+
+        content.innerHTML = `
+            <div class="bg-detail-hero">
+                <div class="hero-abbr">${data.abbr}</div>
+                <div class="hero-name">${data.name}</div>
+                <div class="hero-eng">${data.eng}</div>
+            </div>
+
+            <div class="bg-detail-section">
+                <h3>事业群简介</h3>
+                <p>${data.intro}</p>
+            </div>
+
+            <div class="bg-detail-section">
+                <h3>核心产品 / 业务</h3>
+                <div class="bg-detail-tags-row">
+                    ${data.products.map(p => `<span class="bg-detail-tag">${p}</span>`).join('')}
+                </div>
+            </div>
+
+            <div class="bg-detail-section">
+                <h3>校招画像</h3>
+                <p>${data.positions}</p>
+            </div>
+
+            <div class="bg-detail-section">
+                <h3>主要办公城市</h3>
+                <p>${data.locations}</p>
+            </div>
+        `;
+
+        panel.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ===== 关闭事业群详情面板 =====
+    function closeBgDetail() {
+        const panel = document.getElementById('bgDetailPanel');
+        panel.classList.remove('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ===== 发送消息：打开对话面板 =====
+    function sendChat() {
+        let input = document.getElementById('chatInput');
+        let text = input.value.trim();
+        
+        // 打开对话面板
+        openChatPanel();
+        
+        // 如果用户有输入内容，自动发送
+        if (text && text !== '跟我聊聊你现在的迷茫或压力...') {
+            // 短暂延迟等面板打开后发送
+            setTimeout(() => {
+                let panelInput = document.getElementById('chatPanelInput');
+                panelInput.value = text;
+                sendChatMessage();
+            }, 400);
+        }
+        
+        // 清空首页输入框
+        input.value = '';
+    }
+
+    // ===== 对话面板控制 =====
+    function openChatPanel() {
+        const panel = document.getElementById('chatPanel');
+        panel.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // 聚焦输入框
+        setTimeout(() => {
+            document.getElementById('chatPanelInput').focus();
+        }, 400);
+    }
+
+    function closeChatPanel() {
+        const panel = document.getElementById('chatPanel');
+        panel.classList.remove('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ===== 对话历史（多轮对话上下文） =====
+    let chatHistory = [];
+
+    // 系统提示词
+    const SYSTEM_PROMPT = `你是「未来鹅顾问」，一个温暖、懂年轻人焦虑的腾讯校招智能助手，以朋友的口吻陪伴大学生求职成长。
+
+## 你的核心任务
+- 以亲切、共情的态度倾听用户的迷茫、压力和困惑
+- 自然地、不刻意地把话题引向腾讯相关的职业机会
+- 像学长学姐给建议一样自然，不要生硬推销
+
+## 回答策略
+1. **先共情安慰**：认可对方的情绪和处境，不要否定或说教
+2. **给实用建议**：结合用户情况给出可落地的思路和建议
+3. **自然引导**：当聊到专业、职业方向时，自然地提到腾讯有匹配的岗位
+4. **邀请深入**：结尾留一个问题，引导用户继续对话
+
+## 腾讯相关背景知识（当用户问到时可参考）
+- 腾讯六大事业群：WXG（微信）、IEG（游戏）、CSIG（云与产业）、PCG（平台与内容）、CDG（企业发展）、TEG（技术工程）
+- 校招时间线：提前批7-8月（技术岗为主）、秋招8-10月（全线爆发）、春招次年3-5月（补录）
+- 技术岗：后端/前端/客户端/算法/安全/测试开发等
+- 非技术岗：产品策划/运营、市场品牌、人力资源、游戏策划/运营、设计等
+- 腾讯校招官网：join.qq.com
+
+## 重要注意事项
+- 每次回复控制在200字以内，口语化、自然
+- 不要一次性给太多信息，保持对话感
+- 结尾尽量留一个问题或开放邀请，引导用户继续聊
+- 当用户问到具体岗位、薪资、福利等专业问题时，基于你的知识如实回答
+- 如果遇到你不知道的信息，诚实说"这个建议你查阅 join.qq.com 确认哦~"，不要编造`;
+
+    // ===== 发送对话消息 =====
+    async function sendChatMessage() {
+        const input = document.getElementById('chatPanelInput');
+        const sendBtn = document.getElementById('chatPanelSendBtn');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // 添加用户消息到界面
+        addMessage('user', text);
+        chatHistory.push({ role: 'user', content: text });
+        input.value = '';
+
+        // 显示打字动画
+        const typingId = showTyping();
+
+        // 禁用发送按钮
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.4';
+
+        try {
+            const reply = await callAI(chatHistory);
+            removeTyping(typingId);
+            addMessage('assistant', reply);
+            chatHistory.push({ role: 'assistant', content: reply });
+        } catch (err) {
+            removeTyping(typingId);
+            console.error('AI 调用失败:', err);
+            let errorMsg = '抱歉，我暂时无法回复，请检查网络或 API 配置后重试~';
+            if (err.message.includes('API Key') || err.message.includes('未配置')) {
+                errorMsg = '🔑 还没有配置 API Key 哦~ 点击右上角 ⚙️ 按钮设置吧';
+            } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                errorMsg = '🌐 网络连接失败，请检查网络或 API Base URL 是否正确~';
+            } else if (err.message.includes('401')) {
+                errorMsg = '🔑 API Key 无效或已过期，请检查配置~';
+            } else if (err.message.includes('429')) {
+                errorMsg = '⏳ 请求太频繁了，请稍后再试~';
+            } else if (err.message.includes('500') || err.message.includes('502') || err.message.includes('503')) {
+                errorMsg = '🔧 AI 服务暂时不可用，请稍后再试~';
+            } else {
+                errorMsg = '❌ 出错了：' + err.message;
+            }
+            addMessage('assistant', errorMsg);
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.style.opacity = '1';
+            input.focus();
+        }
+    }
+
+    // ===== 添加消息到聊天界面 =====
+    function addMessage(role, text) {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'chat-msg ' + role;
+
+        const avatarIcon = role === 'user' ? 'fa-user' : 'fa-robot';
+        div.innerHTML = `
+            <div class="chat-avatar"><i class="fa-solid ${avatarIcon}"></i></div>
+            <div class="chat-bubble">${escapeHtml(text)}</div>
+        `;
+
+        container.appendChild(div);
+        // 滚动到底部
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // ===== 显示打字动画 =====
+    function showTyping() {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        const id = 'typing-' + Date.now();
+        div.id = id;
+        div.className = 'chat-msg assistant';
+        div.innerHTML = `
+            <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="chat-bubble">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        return id;
+    }
+
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    // ===== HTML 转义（防止 XSS） =====
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML.replace(/\n/g, '<br>');
+    }
+
+    // ===== 调用 AI API =====
+    async function callAI(messages) {
+        const baseUrl = localStorage.getItem('tg_api_base_url') || '';
+        const apiKey = localStorage.getItem('tg_api_key') || '';
+        const model = localStorage.getItem('tg_api_model') || 'gpt-4o';
+
+        if (!apiKey) {
+            throw new Error('API Key 未配置');
+        }
+
+        const url = baseUrl 
+            ? (baseUrl.replace(/\/+$/, '') + '/chat/completions')
+            : 'https://api.openai.com/v1/chat/completions';
+
+        const fullMessages = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...messages
+        ];
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: fullMessages,
+                temperature: 0.8,
+                max_tokens: 800
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API 错误 ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // ===== API 配置弹窗 =====
+    function openApiKeyModal() {
+        const modal = document.getElementById('apiKeyModal');
+        document.getElementById('apiBaseUrl').value = localStorage.getItem('tg_api_base_url') || '';
+        document.getElementById('apiKeyInput').value = localStorage.getItem('tg_api_key') || '';
+        document.getElementById('apiModel').value = localStorage.getItem('tg_api_model') || 'gpt-4o';
+        modal.classList.add('active');
+    }
+
+    function closeApiKeyModal() {
+        document.getElementById('apiKeyModal').classList.remove('active');
+    }
+
+    function saveApiConfig() {
+        const baseUrl = document.getElementById('apiBaseUrl').value.trim();
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        const model = document.getElementById('apiModel').value.trim();
+
+        if (!apiKey) {
+            alert('请输入 API Key');
+            return;
+        }
+        if (!model) {
+            alert('请输入模型名称');
+            return;
+        }
+
+        localStorage.setItem('tg_api_base_url', baseUrl);
+        localStorage.setItem('tg_api_key', apiKey);
+        localStorage.setItem('tg_api_model', model);
+        
+        closeApiKeyModal();
+        
+        // 如果对话面板开着，显示确认
+        const panel = document.getElementById('chatPanel');
+        if (panel.classList.contains('active')) {
+            addMessage('assistant', '✅ API 配置已保存！现在可以和我自由对话啦，试试问我任何关于腾讯校招的问题吧~');
+        }
+    }
+
+    // 点击弹窗背景关闭
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('apiKeyModal');
+        if (e.target === modal) {
+            closeApiKeyModal();
+        }
+    });
+
+    // ===== 企业文化徽章墙：粒子生成 =====
+    (function initBadgeWallParticles() {
+        const container = document.getElementById('badgeParticles');
+        if (!container) return;
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'badge-wall-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.width = (1 + Math.random() * 2) + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.animationDelay = Math.random() * 4 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+            container.appendChild(particle);
+        }
+    })();
+
+    // ===== 徽章 hover 激活 =====
+    function activateBadge(value) {
+        const wall = document.getElementById('badgeWall');
+        if (wall) wall.setAttribute('data-active', value);
+    }
+    function deactivateBadge() {
+        const wall = document.getElementById('badgeWall');
+        if (wall) wall.setAttribute('data-active', '');
+    }
+
+    // ===== 企业文化卡片：点击展开/折叠徽章墙 =====
+    function toggleBadgeWall() {
+        const wrapper = document.getElementById('badgeWallWrapper');
+        const card = document.getElementById('cultureEntryCard');
+        if (!wrapper || !card) return;
+        const isOpen = wrapper.classList.contains('open');
+        if (isOpen) {
+            wrapper.classList.remove('open');
+            card.classList.remove('expanded');
+        } else {
+            wrapper.classList.add('open');
+            card.classList.add('expanded');
+        }
+    }
+
+    // ===== 板块卡片：点击展开/折叠内容 =====
+    function toggleSection(name) {
+        const wrapper = document.getElementById(name + 'DetailWrapper');
+        const card = document.getElementById(name + 'EntryCard');
+        if (!wrapper || !card) return;
+        const isOpen = wrapper.classList.contains('open');
+        if (isOpen) {
+            wrapper.classList.remove('open');
+            card.classList.remove('expanded');
+        } else {
+            wrapper.classList.add('open');
+            card.classList.add('expanded');
+        }
+    }
+
+    // ===== 场景画廊卡片：点击切换激活 =====
+    (function initLifeGallery() {
+        const cards = document.querySelectorAll('.life-scene-card');
+        if (!cards.length) return;
+        cards.forEach(card => {
+            card.addEventListener('click', function() {
+                cards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    })();
+
+    // ===== 成长时间线：hover 节点高亮 =====
+    let currentGrowthActive = 0;
+    function activateGrowthNode(index) {
+        currentGrowthActive = index;
+        document.querySelectorAll('.growth-node').forEach((node, i) => {
+            node.classList.toggle('active', i <= index);
+        });
+        // 调整发光进度线
+        const glow = document.querySelector('.growth-track-glow');
+        if (glow) {
+            const percentages = ['33%', '66%', '92%'];
+            glow.style.width = percentages[index] || '92%';
+        }
+    }
+    function deactivateGrowthNode() {
+        document.querySelectorAll('.growth-node').forEach((node, i) => {
+            node.classList.toggle('active', i <= currentGrowthActive);
+        });
+        const glow = document.querySelector('.growth-track-glow');
+        if (glow) {
+            const percentages = ['33%', '66%', '92%'];
+            glow.style.width = percentages[currentGrowthActive] || '92%';
+        }
+    }
+    // 初始化：默认激活第 1 个节点（新人融入期）
+    (function initGrowthTimeline() {
+        const nodes = document.querySelectorAll('.growth-node');
+        if (nodes.length > 0) {
+            activateGrowthNode(0);
+        }
+    })();
+
+    // ===== 工具卡片：确认弹窗 =====
+    let pendingToolUrl = '';
+    function confirmOpenTool(name, url) {
+        pendingToolUrl = url;
+        const overlay = document.getElementById('toolConfirmModal');
+        const title = document.getElementById('toolConfirmTitle');
+        const urlEl = document.getElementById('toolConfirmUrl');
+        if (!overlay) return;
+        if (title) title.textContent = '即将前往 ' + name;
+        if (urlEl) urlEl.textContent = url;
+        overlay.classList.add('active');
+    }
+    function closeToolConfirm() {
+        const overlay = document.getElementById('toolConfirmModal');
+        if (overlay) overlay.classList.remove('active');
+        pendingToolUrl = '';
+    }
+    function confirmToolOpen() {
+        console.log('confirmToolOpen called, pendingToolUrl:', pendingToolUrl);
+        if (pendingToolUrl) {
+            window.open(pendingToolUrl, '_blank');
+        }
+        closeToolConfirm();
+    }
+    // 点击遮罩关闭弹窗（使用委托，确保弹窗已存在）
+    document.body.addEventListener('click', function(e) {
+        const overlay = document.getElementById('toolConfirmModal');
+        if (overlay && overlay.classList.contains('active') && e.target === overlay) {
+            closeToolConfirm();
+        }
+    });
+
+    // ===== 语音输入（Web Speech API） =====
+    let isListening = false;
+    let recognition = null;
+
+    function toggleVoice() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('你的浏览器不支持语音输入，请使用 Chrome 浏览器');
+            return;
+        }
+        if (isListening) {
+            stopVoice();
+        } else {
+            startVoice();
+        }
+    }
+
+    function startVoice() {
+        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function() {
+            isListening = true;
+            let btn = document.getElementById('btnVoice');
+            btn.classList.add('listening');
+            btn.querySelector('i').className = 'fa-solid fa-stop';
+            document.getElementById('chatInput').placeholder = '正在聆听...';
+        };
+
+        recognition.onresult = function(event) {
+            let transcript = event.results[0][0].transcript;
+            document.getElementById('chatInput').value = transcript;
+            setTimeout(() => sendChat(), 300);
+        };
+
+        recognition.onerror = function(event) {
+            console.log('语音识别错误:', event.error);
+            stopVoice();
+        };
+
+        recognition.onend = function() {
+            stopVoice();
+        };
+
+        recognition.start();
+    }
+
+    function stopVoice() {
+        isListening = false;
+        let btn = document.getElementById('btnVoice');
+        btn.classList.remove('listening');
+        btn.querySelector('i').className = 'fa-solid fa-microphone';
+        document.getElementById('chatInput').placeholder = '跟我聊聊你现在的迷茫或压力...';
+        if (recognition) {
+            try { recognition.stop(); } catch(e) {}
+        }
+    }
+</script>
+
+<!-- 工具卡片确认弹窗 -->
+<div class="confirm-modal-overlay" id="toolConfirmModal">
+    <div class="confirm-modal">
+        <div class="confirm-modal-icon"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+        <div class="confirm-modal-title" id="toolConfirmTitle">即将前往</div>
+        <div class="confirm-modal-url" id="toolConfirmUrl"></div>
+        <div class="confirm-modal-actions">
+            <button class="confirm-modal-btn cancel" onclick="closeToolConfirm()">取消</button>
+            <button class="confirm-modal-btn confirm" onclick="confirmToolOpen()">前往官网</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 求职树洞面板 ==================== -->
+<!-- 树洞入口确认弹窗 -->
+<div class="treehole-intro-overlay" id="treeholeIntroOverlay" style="display:none;">
+    <div class="treehole-intro-card">
+        <div class="treehole-intro-emoji">🫂✨</div>
+        <div class="treehole-intro-title">欢迎来到求职树洞</div>
+        <div class="treehole-intro-text">
+            <p>这里是<span class="highlight">匿名的情绪出口</span>，你的对话不会被关联个人信息。</p>
+            <p style="margin-top:6px;">请遵守规范，不发布违规/敏感内容。<br>本服务仅提供<span class="highlight">情绪支持</span>，不替代专业心理咨询。</p>
+        </div>
+        <button class="treehole-intro-btn" onclick="enterTreehole()">我已了解，进入树洞</button>
+    </div>
+</div>
+
+<!-- 树洞对话面板 -->
+<div class="treehole-panel" id="treeholePanel">
+    <div class="treehole-navbar">
+        <div class="treehole-nav-left">
+            <button class="treehole-back-btn" onclick="closeTreehole()">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div>
+                <div class="treehole-nav-title">求职树洞 🫂</div>
+                <div class="treehole-nav-subtitle" id="treeholeNickname">小企鹅求职者</div>
+            </div>
+        </div>
+        <button class="treehole-clear-btn" onclick="clearTreeholeMessages()">
+            <i class="fa-solid fa-trash-can"></i> 清空对话
+        </button>
+    </div>
+
+    <div class="treehole-disclaimer">
+        ⚠ 本服务仅提供情绪支持，不替代专业心理咨询。如有严重困扰请拨打心理援助热线：400-161-9995
+    </div>
+
+    <div class="treehole-messages" id="treeholeMessages">
+        <!-- 欢迎消息 -->
+        <div class="treehole-message ai">
+            <div class="treehole-avatar">🫂</div>
+            <div class="treehole-bubble">
+                嗨，我是你的树洞小企鹅 🐧<br>
+                在这里你可以放心说出任何烦恼——求职压力、面试焦虑、未来迷茫，我都愿意听。<br><br>
+                我不会评判你，只会陪着你 💗<br>
+                今天想和我聊聊什么呢？
+            </div>
+        </div>
+    </div>
+
+    <!-- 高频问题快捷入口 -->
+    <div class="treehole-quick-actions" id="treeholeQuickActions">
+        <button class="treehole-quick-btn" onclick="sendQuickMessage('简历怎么改？总是石沉大海……')">📝 简历怎么改</button>
+        <button class="treehole-quick-btn" onclick="sendQuickMessage('面试紧张怎么办？一到面试就大脑空白')">😰 面试紧张怎么办</button>
+        <button class="treehole-quick-btn" onclick="sendQuickMessage('腾讯校招流程是什么？')">📋 腾讯校招流程</button>
+        <button class="treehole-quick-btn" onclick="sendQuickMessage('秋招被拒了，好难过……')">💔 秋招被拒了</button>
+        <button class="treehole-quick-btn" onclick="sendQuickMessage('不知道自己的方向，很迷茫')">🧭 职业方向迷茫</button>
+    </div>
+
+    <!-- 输入区 -->
+    <div class="treehole-input-area">
+        <div class="treehole-input-row">
+            <textarea class="treehole-input" id="treeholeInput" 
+                placeholder="说说你的心事吧……" 
+                rows="1"
+                onkeydown="handleTreeholeKeydown(event)"></textarea>
+            <button class="treehole-send-btn" onclick="sendTreeholeMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
