@@ -45,6 +45,32 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            animation: pageFadeIn 0.6s ease-out;
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 各模块错落入场 */
+        .header-section { animation: slideDown 0.5s 0.1s ease-out both; }
+        .stage-container { animation: scaleIn 0.5s 0.15s ease-out both; }
+        .portal-grid { animation: slideUp 0.5s 0.2s ease-out both; }
+        .timeline-card-horizontal { animation: slideUp 0.5s 0.25s ease-out both; }
+        .chat-input-bar-container { animation: slideUp 0.5s 0.3s ease-out both; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         /* 顶部标题区 */
@@ -72,17 +98,17 @@
             justify-content: center;
             align-items: flex-end;
             padding-bottom: 2vh;
-            height: 36vh;
-            max-height: 215px;
+            height: auto;
+            max-height: calc(160px + 2cm);
         }
 
         .light-beam {
             position: absolute;
             bottom: 2vh;
-            width: 40vw;
-            max-width: 160px;
-            height: 40vw;
-            max-height: 160px;
+            width: 46vw;
+            max-width: 184px;
+            height: 46vw;
+            max-height: 184px;
             background: radial-gradient(ellipse at 50% 100%, rgba(0, 229, 255, 0.18) 0%, rgba(0, 102, 255, 0.06) 40%, transparent 70%);
             border-radius: 50% / 60% 60% 20% 20%;
             filter: blur(8px);
@@ -91,8 +117,8 @@
         .light-glow-core {
             position: absolute;
             bottom: calc(2vh + 2px);
-            width: 24vw;
-            max-width: 96px;
+            width: 27.6vw;
+            max-width: 110px;
             height: 8px;
             background: radial-gradient(circle, rgba(0,229,255,1) 0%, rgba(0,102,255,0.4) 60%, transparent 100%);
             border-radius: 50%;
@@ -110,10 +136,10 @@
         /* 确保企鹅层级最高 */
         .stage-avatar {
             position: relative;
-            width: 50vw;
-            max-width: 198px;
-            height: 50vw;
-            max-height: 198px;
+            width: auto;
+            max-width: 207px;
+            height: auto;
+            max-height: 23vh;
             object-fit: contain;
             z-index: 20; /* 高于一切 */
             animation: penguinFloat 4s ease-in-out infinite;
@@ -131,9 +157,9 @@
         /* 🌟 大卡片：位于4模块下方，弹性跟随流式布局 */
         .status-overlap-card {
             order: 2;
+            position: relative;
             flex: 1;
             min-height: 0;
-            margin-top: -3cm;
             background: linear-gradient(180deg, rgba(11, 20, 38, 0.85) 0%, rgba(0, 229, 255, 0.06) 100%);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -144,7 +170,9 @@
             text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
             pointer-events: none;
-            clip-path: inset(0 0 0.3cm 0);
+            margin-top: -3cm;
+            margin-bottom: 1cm;
+            z-index: 1;
         }
 
         /* ==================== 4大核心功能模块 ==================== */
@@ -157,7 +185,7 @@
             gap: 8px;
             padding: 0 2px;
             flex-shrink: 0;
-            margin-top: 1.7cm;
+            margin-top: 1cm;
             margin-bottom: -28px;
         }
 
@@ -240,7 +268,7 @@
         .bottom-dock-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
             flex-shrink: 0;
             padding-bottom: 1vh;
         }
@@ -250,10 +278,12 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 14px;
-            padding: 8px 10px 6px;
+            padding: 10px 14px 8px;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            margin-top: 10px;
+            margin-bottom: 12px;
         }
 
         /* 大标题 */
@@ -334,6 +364,18 @@
             justify-content: center;
             font-size: 9px;
             transition: all 0.3s ease;
+        }
+
+        /* 火箭发光效果 */
+        .rocket-glow {
+            border-color: var(--cyan-glow) !important;
+            color: var(--cyan-glow) !important;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6), 0 0 24px rgba(0, 229, 255, 0.3) !important;
+            animation: rocketPulse 2s ease-in-out infinite;
+        }
+        @keyframes rocketPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(0, 229, 255, 0.4), 0 0 14px rgba(0, 229, 255, 0.2); }
+            50% { box-shadow: 0 0 16px rgba(0, 229, 255, 0.8), 0 0 32px rgba(0, 229, 255, 0.4); }
         }
 
         /* 高亮节点样式（当前所处阶段） */
@@ -473,6 +515,7 @@
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                animation: scaleIn 0.6s 0.1s ease-out both;
             }
 
             .pc-left-panel .stage-container {
@@ -481,8 +524,25 @@
             }
 
             .pc-left-panel .stage-avatar {
-                width: 320px;
-                height: 320px;
+                width: 416px;
+                height: 416px;
+            }
+
+            .pc-left-panel .stage-container {
+                height: 480px;
+                padding-bottom: 0;
+            }
+
+            .pc-left-panel .light-beam {
+                width: 338px;
+                height: 338px;
+                bottom: 20px;
+            }
+
+            .pc-left-panel .light-glow-core {
+                width: 208px;
+                height: 14px;
+                bottom: 22px;
             }
 
             .pc-left-panel .light-beam {
@@ -497,11 +557,14 @@
                 bottom: 22px;
             }
 
-            /* 移动端元素在PC端隐藏 */
+            /* 移动端元素在PC端隐藏（必须 !important 确保覆盖） */
             .header-section,
             .stage-and-portal-wrapper,
-            .bottom-dock-section {
-                display: none;
+            .status-overlap-card:not(.pc-right-panel .status-overlap-card),
+            .timeline-card-horizontal:not(.pc-right-panel .timeline-card-horizontal),
+            .bottom-dock-section,
+            .stage-container:not(.pc-left-panel .stage-container) {
+                display: none !important;
             }
 
             /* 右侧：内容区 */
@@ -515,9 +578,23 @@
                 overflow-x: hidden;
                 padding-right: 4px;
                 justify-content: center;
+                animation: slideUp 0.6s 0.15s ease-out both;
                 /* 自定义滚动条 */
                 scrollbar-width: thin;
                 scrollbar-color: rgba(0, 229, 255, 0.15) transparent;
+            }
+
+            /* PC端内部元素重置，避免移动端样式污染 */
+            .pc-right-panel > * {
+                order: unset !important;
+            }
+            .pc-right-panel .portal-grid {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+            .pc-right-panel .timeline-card-horizontal {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
             }
             .pc-right-panel::-webkit-scrollbar {
                 width: 4px;
@@ -552,7 +629,7 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 16px;
-                margin-top: 1.5cm;
+                margin-top: 0.3cm;
             }
 
             .pc-right-panel .portal-card {
@@ -3076,13 +3153,13 @@
         </div>
 
         <div class="timeline-card-horizontal">
-            <div class="timeline-header">腾讯校招求职参考时间线</div>
+            <div class="timeline-header">鹅厂校招求职参考时间线</div>
             <div class="timeline-track-container">
                 <div class="track-bg-line"></div>
                 <div class="track-progress-line"></div>
                 <div class="timeline-nodes">
                     <div class="t-node">
-                        <div class="t-icon"><i class="fa-solid fa-rocket"></i></div>
+                        <div class="t-icon rocket-glow"><i class="fa-solid fa-rocket"></i></div>
                         <div class="t-time">7-8月</div>
                         <div class="t-title">提前批</div>
                         <div class="t-desc">锁定转正绿卡</div>
@@ -3169,53 +3246,54 @@
             </div>
         </div>
 
+
     </div>
 
-    <!-- 底部固态区（横向线性节点时间轴 + 语音输入常驻对话框） -->
-    <div class="bottom-dock-section">
+    <!-- 🚀 横向节点型参考时间线 -->
+    <div class="timeline-card-horizontal">
+        <div class="timeline-header">鹅厂校招求职参考时间线</div>
         
-        <!-- 🚀 全新：横向节点型参考时间线 -->
-        <div class="timeline-card-horizontal">
-            <div class="timeline-header">腾讯校招求职参考时间线</div>
+        <div class="timeline-track-container">
+            <!-- 贯穿的时间轨道线 -->
+            <div class="track-bg-line"></div>
+            <!-- 点亮提前批的蓝色发光线 -->
+            <div class="track-progress-line"></div>
             
-            <div class="timeline-track-container">
-                <!-- 贯穿的时间轨道线 -->
-                <div class="track-bg-line"></div>
-                <!-- 点亮提前批的蓝色发光线 -->
-                <div class="track-progress-line"></div>
+            <div class="timeline-nodes">
+                <!-- 节点 1：提前批 -->
+                <div class="t-node">
+                    <div class="t-icon rocket-glow"><i class="fa-solid fa-rocket"></i></div>
+                    <div class="t-time">7-8月</div>
+                    <div class="t-title">提前批</div>
+                    <div class="t-desc">锁定转正绿卡</div>
+                </div>
                 
-                <div class="timeline-nodes">
-                    <!-- 节点 1：提前批 -->
-                    <div class="t-node">
-                        <div class="t-icon"><i class="fa-solid fa-rocket"></i></div>
-                        <div class="t-time">7-8月</div>
-                        <div class="t-title">提前批</div>
-                        <div class="t-desc">锁定转正绿卡</div>
-                    </div>
-                    
-                    <!-- 节点 2：秋招批 -->
-                    <div class="t-node">
-                        <div class="t-icon"><i class="fa-solid fa-envelope"></i></div>
-                        <div class="t-time">8-10月</div>
-                        <div class="t-title">秋招批</div>
-                        <div class="t-desc">全线岗位爆发</div>
-                    </div>
-                    
-                    <!-- 节点 3：春招批 -->
-                    <div class="t-node">
-                        <div class="t-icon"><i class="fa-solid fa-seedling"></i></div>
-                        <div class="t-time">次年3-5月</div>
-                        <div class="t-title">春招批</div>
-                        <div class="t-desc">补录与新机会</div>
-                    </div>
+                <!-- 节点 2：秋招批 -->
+                <div class="t-node">
+                    <div class="t-icon"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="t-time">8-10月</div>
+                    <div class="t-title">秋招批</div>
+                    <div class="t-desc">全线岗位爆发</div>
+                </div>
+                
+                <!-- 节点 3：春招批 -->
+                <div class="t-node">
+                    <div class="t-icon"><i class="fa-solid fa-seedling"></i></div>
+                    <div class="t-time">次年3-5月</div>
+                    <div class="t-title">春招批</div>
+                    <div class="t-desc">补录与新机会</div>
                 </div>
             </div>
-            
-            <!-- 底部淡色免责/提示文字 -->
-            <div class="timeline-footer-note">
-                * 提前批以技术岗为主，与秋招批不冲突，可叠加投递
-            </div>
         </div>
+        
+        <!-- 底部淡色免责/提示文字 -->
+        <div class="timeline-footer-note">
+            * 提前批以技术岗为主，与秋招批不冲突，可叠加投递
+        </div>
+    </div>
+
+    <!-- 底部固态区（语音输入常驻对话框） -->
+    <div class="bottom-dock-section">
 
         <!-- 对话框 -->
         <div class="chat-input-bar-container">
@@ -3812,79 +3890,127 @@
 
     // 树洞 AI 回复逻辑（本地模拟，核心 Prompt 逻辑）
     const treeholePromptRules = {
-        // 情绪关键词 -> 共情回复模式
         empathyPatterns: [
-            { keywords: ['被拒', '拒绝', '挂了', '没过', '失败', '落选'], 
+            { keywords: ['被拒', '拒绝', '挂了', '没过', '失败', '落选', '刷掉', '没通过', '石沉大海', '没消息', '没回复'], 
               replies: [
                 '抱抱你 🫂 被拒绝的滋味真的很难受，每一次投简历、每一次面试，你都付出了真心和努力。这不是你不够好，只是那个位置刚好有更适合的人。你已经很勇敢了 💗',
                 '我听到你的失落了。求职路上的每一次"不合适"都像一记重击，但请相信，这些经历正在让你变得更坚韧。要不要和我说说具体发生了什么？',
-                '被拒的感觉我懂，那种满怀期待又落空的心情真的很难熬。但你知道吗，很多后来拿到理想 offer 的人，都经历过这个阶段。你并不孤单 🐧'
+                '被拒的感觉我懂，那种满怀期待又落空的心情真的很难熬。但你知道吗，很多后来拿到理想 offer 的人，都经历过这个阶段。你并不孤单 🐧',
+                '每封拒信背后，其实都有一个更适合你的机会在等着。投了100份简历？没关系，你只需要那1个对的机会。把拒信当成路标，而不是终点 💪'
               ]
             },
-            { keywords: ['紧张', '焦虑', '害怕', '恐惧', '担心', '慌'],
+            { keywords: ['紧张', '焦虑', '害怕', '恐惧', '担心', '慌', '发抖', '心跳', '睡不着', '失眠'],
               replies: [
                 '紧张说明你在乎，这是好事 🫂 面试前的心跳加速、手心出汗，几乎每个人都会经历。要不要试试这个：深呼吸三次，告诉自己"我已经准备好了，做到最好就够了"。',
                 '我理解那种紧张感——它其实是你身体在帮你准备应对重要时刻。试着把它看作兴奋而不是恐惧。你之前有过成功应对紧张的经历吗？想想那次你是怎么做到的 💗',
-                '面试紧张太正常了，连面了几百人的面试官有时也会紧张呢。要不要我分享几个面试前快速放松的小技巧？'
+                '面试紧张太正常了，连面了几百人的面试官有时也会紧张呢。要不要我分享几个面试前快速放松的小技巧？',
+                '失眠是因为你的大脑在努力准备明天的重要时刻呢。试试睡前远离手机半小时，做几个深呼吸，或者写下来你担心的事情——写到纸上，大脑就会放松一些 🌙'
               ]
             },
-            { keywords: ['迷茫', '不知道', '方向', '困惑', '怎么办', '选择'],
+            { keywords: ['迷茫', '不知道', '方向', '困惑', '怎么办', '选择', '适合', '适合什么', '做什么'],
               replies: [
                 '迷茫其实是成长的前奏 🐧 它说明你在认真思考自己的未来，而不是随波逐流。很多人毕业时都和你一样——不确定自己适合什么、想要什么。',
                 '方向迷茫的时候，与其急着找答案，不如先问自己几个问题：做什么事情时你会忘记时间？你羡慕什么样的人的生活状态？也许答案就藏在你的日常里 💗',
-                '我听到了你的困惑。这个阶段的迷茫几乎是"标配"——大学教了我们专业知识，却很少教我们如何选择人生方向。要不要和我聊聊你目前的想法和顾虑？'
+                '我听到了你的困惑。这个阶段的迷茫几乎是"标配"——大学教了我们专业知识，却很少教我们如何选择人生方向。要不要和我聊聊你目前的想法和顾虑？',
+                '找方向这件事，很多时候不是"想"出来的，而是"试"出来的。哪怕先投几份不同方向的实习，去感受一下，也比原地纠结有用得多 🐧'
               ]
             },
-            { keywords: ['压力', '累', '疲惫', '崩溃', '撑不住', '好难'],
+            { keywords: ['压力', '累', '疲惫', '崩溃', '撑不住', '好难', '好累', '喘不过气', '扛不住'],
               replies: [
                 '我能感受到你肩上的重量 🫂 求职季的压力真的很大，一边要准备笔试面试，一边还要应对毕业的各种事情。允许自己累，允许自己停下来喘口气。',
                 '辛苦了 🐧 这段时间你一定扛了很多。要不要试着把压力说出来？有时候仅仅是"说出来"这个动作，就能让心里的石头轻一些。我在这里听着。',
-                '抱抱你 💗 这种"好难"的感觉是真实的，不是你的问题。求职本来就不是一场短跑，而是一场马拉松。你已经跑得很远了，停下来喝口水不丢人。'
+                '抱抱你 💗 这种"好难"的感觉是真实的，不是你的问题。求职本来就不是一场短跑，而是一场马拉松。你已经跑得很远了，停下来喝口水不丢人。',
+                '你知道吗？适当的压力是身体给你的能量信号。但过度了就变成负担了。今天先放过自己，做一件让你开心的小事，哪怕只是吃个冰淇淋 🍦'
               ]
             },
-            { keywords: ['难过', '伤心', '哭', '委屈', '不开心', '失落'],
+            { keywords: ['难过', '伤心', '哭', '委屈', '不开心', '失落', '沮丧', '绝望', 'emo'],
               replies: [
                 '🫂 那些让你难过的事情，都是真实的、重要的。想哭就哭吧，情绪需要出口，而不是被压回去。我在这里陪着你。',
                 '你的委屈我听到了 💗 求职路上的每一次失落都是真实的情感，不需要对自己说"这没什么"。允许自己难过，也是一种对自己的温柔。',
-                '失落的情绪像潮水，它会来，也会退。现在的难过不代表永远，但此刻的感受值得被认真对待。要不要和我多说说？'
+                '失落的情绪像潮水，它会来，也会退。现在的难过不代表永远，但此刻的感受值得被认真对待。要不要和我多说说？',
+                '有时候感到 emo 不是因为脆弱，而是因为你真的太在意了。在意自己的未来，在意自己的努力有没有回报。这种在意本身就很了不起 🌟'
               ]
             },
-            { keywords: ['你好', '嗨', 'hello', 'hi'],
+            { keywords: ['简历', '改简历', '优化', '怎么写'],
+              replies: [
+                '简历是求职的第一张名片呢 📝 一个好的简历不是堆砌经历，而是讲一个"为什么你适合这个岗位"的故事。要不要我帮你梳理一下简历的结构？',
+                '改简历确实头疼，但有几个小技巧可以试试：用 STAR 法则写项目经历（情境-任务-行动-结果），量化成果（不说"提升了效率"，说"效率提升30%"），还有针对每个岗位微调关键词 💡',
+                '简历石沉大海可能不是因为你不优秀，而是关键词没对上。很多公司用 ATS 系统筛选，建议你把目标岗位 JD 里的关键词自然地融入简历中 🎯'
+              ]
+            },
+            { keywords: ['面试', '面经', '群面', '无领导', '技术面', 'hr面'],
+              replies: [
+                '面试这件事，准备占七分，心态占三分 🎯 你目前准备到哪个阶段了？是想了解某个具体环节，还是需要一些通用的面试技巧？',
+                '群面/无领导小组讨论的核心不是"赢"，而是展示你的协作能力和逻辑思维。不一定要当 leader，做一个好的 timer 或者总结者，同样能让人印象深刻 ✨',
+                '技术面最重要的是展示你的思考过程，而不只是最终答案。遇到不会的题，可以坦诚说"这个我不太熟，但我猜思路可能是..."，面试官更看重你的学习能力 🐧'
+              ]
+            },
+            { keywords: ['你好', '嗨', 'hello', 'hi', '在吗'],
               replies: [
                 '嗨！欢迎来到树洞 🐧💗 今天过得怎么样？有什么想和我聊聊的吗？开心的、难过的、困惑的，我都愿意听。',
-                '你好呀～我是你的树洞小企鹅 🫂 这里很安全，你可以放心说任何事。最近求职路上有什么感受想分享吗？'
+                '你好呀～我是你的树洞小企鹅 🫂 这里很安全，你可以放心说任何事。最近求职路上有什么感受想分享吗？',
+                '在的呀～一直在等你呢 🐧 今天想聊点什么？心情、求职、还是随便聊聊都可以～'
+              ]
+            },
+            { keywords: ['谢谢', '感谢', '谢谢你', '多谢', '有你真好'],
+              replies: [
+                '不用谢呀 🐧💗 能帮到你我也很开心。记住，任何时候需要倾诉，我都在这里。',
+                '你太客气啦～能陪着你走这段求职路，是我的荣幸。以后有什么想说的，随时来找我 🫂',
+                '嘿嘿，你的感谢我收到啦 🐧 不过真正值得感谢的是你自己——是你在努力，在坚持，在成长。我只是在旁边给你加加油 💪'
+              ]
+            },
+            { keywords: ['offer', '拿了', '过了', '通过了', '上岸', '好消息', '开心'],
+              replies: [
+                '太棒了！！🎉🎉🎉 我就知道你可以的！这一路走来真的不容易，你值得这个好消息。好好庆祝一下！',
+                '恭喜上岸！！🐧✨ 这一刻的喜悦是你应得的。经历了那么多焦虑和等待，现在终于可以松一口气了。记得给自己一个大大的奖励！',
+                '哇！太为你开心了！！💗 每一个拿到 offer 的人背后都有无数个被拒的故事。你熬过来了，太了不起了！接下来准备怎么庆祝？'
               ]
             }
         ],
-        // 通用共情回复
         fallbackReplies: [
           '我听到了 🫂 谢谢你和我说这些。有时候仅仅是把自己的感受说出来，就已经很了不起了。要不要再多聊聊？',
           '嗯，我在听 💗 你的感受都是真实且重要的。求职路上有太多不确定性，愿意分享本身就是一种勇气。',
-          '谢谢你的信任 🐧 每个人的求职故事都是独特的，你的经历值得被认真对待。还有什么想和我说的吗？'
+          '谢谢你的信任 🐧 每个人的求职故事都是独特的，你的经历值得被认真对待。还有什么想和我说的吗？',
+          '我在认真听你说的每一句话 💗 这种愿意表达自己的勇气，本身就很珍贵。继续说说看？',
+          '你的感受我都收到了 🫂 有时候不需要答案，只是需要有人听见。我在这里，继续说～'
         ],
-        // 情绪安抚后的自然衔接引导
         guidancePhrases: [
-          '要不要和我说说这次面试的具体情况？',
-          '我可以帮你整理几个缓解面试紧张的小技巧，要试试吗？',
+          '要不要和我说说具体发生了什么？',
+          '我可以帮你整理几个实用的小技巧，要试试吗？',
           '你想聊聊简历优化，还是面试准备？我可以给你一些方向。',
           '如果你愿意，我们可以一起梳理一下你目前的求职计划。',
-          '想听听我的建议，还是只是想让我陪着你？都可以的 💗'
+          '想听听我的建议，还是只是想让我陪着你？都可以的 💗',
+          '其实你可以试试把困扰写下来，有时候写的过程本身就是一种梳理 📝',
+          '你觉得目前最需要解决的是什么？我们可以一个个来～'
         ]
     };
 
+    // 记录最近使用的回复索引，避免重复
+    const recentReplyIndex = {};
+
     function getTreeholeReply(userMsg) {
         const msg = userMsg.toLowerCase();
-        // 匹配情绪模式
         for (const pattern of treeholePromptRules.empathyPatterns) {
             if (pattern.keywords.some(kw => msg.includes(kw))) {
-                const reply = pattern.replies[Math.floor(Math.random() * pattern.replies.length)];
-                const guidance = treeholePromptRules.guidancePhrases[Math.floor(Math.random() * treeholePromptRules.guidancePhrases.length)];
-                return reply + '\n\n' + guidance;
+                // 避免连续使用相同回复
+                let idx;
+                const key = pattern.keywords[0];
+                do {
+                    idx = Math.floor(Math.random() * pattern.replies.length);
+                } while (pattern.replies.length > 1 && idx === recentReplyIndex[key]);
+                recentReplyIndex[key] = idx;
+                
+                const reply = pattern.replies[idx];
+                // 40% 概率添加引导语
+                if (Math.random() < 0.4) {
+                    const gIdx = Math.floor(Math.random() * treeholePromptRules.guidancePhrases.length);
+                    return reply + '\n\n' + treeholePromptRules.guidancePhrases[gIdx];
+                }
+                return reply;
             }
         }
-        // 无匹配时使用通用回复
-        const fallback = treeholePromptRules.fallbackReplies[Math.floor(Math.random() * treeholePromptRules.fallbackReplies.length)];
-        return fallback;
+        const fIdx = Math.floor(Math.random() * treeholePromptRules.fallbackReplies.length);
+        return treeholePromptRules.fallbackReplies[fIdx];
     }
 
     // 生成匿名昵称
@@ -4451,15 +4577,17 @@
     (function initBadgeWallParticles() {
         const container = document.getElementById('badgeParticles');
         if (!container) return;
-        for (let i = 0; i < 40; i++) {
+        const colors = ['#00e5ff', '#ff65a3', '#07c160', '#ffd700', '#0088ff', '#ff6b35'];
+        for (let i = 0; i < 60; i++) {
             const particle = document.createElement('div');
             particle.className = 'badge-wall-particle';
             particle.style.left = Math.random() * 100 + '%';
             particle.style.top = Math.random() * 100 + '%';
-            particle.style.width = (1 + Math.random() * 2) + 'px';
+            particle.style.width = (1 + Math.random() * 3) + 'px';
             particle.style.height = particle.style.width;
-            particle.style.animationDelay = Math.random() * 4 + 's';
-            particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 5) + 's';
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
             container.appendChild(particle);
         }
     })();
